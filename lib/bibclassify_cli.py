@@ -120,43 +120,55 @@ def main():
 def _display_help():
     """Prints the help message for this module."""
     print """Usage: bibclassify [OPTION]... [FILE/URL]...
-  or:  bibclassify [OPTION]... [DIRECTORY]...
+       bibclassify [OPTION]... [DIRECTORY]...
 Searches keywords in FILEs and/or files in DIRECTORY(ies). If a directory is
 specified, BibClassify will generate keywords for all PDF documents contained
-in the directory.
+in the directory.  Can also run in a daemon mode, in which case the files to
+be run are looked for from the database (=records modified since the last run).
 
 General options:
   -h, --help                display this help and exit
   -V, --version             output version information and exit
-  -v, --verbose LEVEL       sets the verbose to LEVEL (=0)
-  -k, --taxonomy FILE       sets the FILE to read the taxonomy from. It can be
-                            a simple controlled vocabulary file or a
-                            descriptive RDF/SKOS file.
-Standalone specific options:
-  -o, --output-mode TYPE    changes the output format to TYPE (text, marcxml or
+  -v, --verbose=LEVEL       sets the verbose to LEVEL (=0)
+  -k, --taxonomy=NAME       sets the taxonomy NAME. It can be a simple
+                            controlled vocabulary or a descriptive RDF/SKOS
+                            and can be located in a local file or URL.
+
+Standalone file mode options:
+  -o, --output-mode=TYPE    changes the output format to TYPE (text, marcxml or
                             html) (=text)
   -s, --spires              outputs keywords in the SPIRES format
-  -n, --keywords-number INT sets the number of keywords displayed (=20), use 0
+  -n, --keywords-number=INT sets the number of keywords displayed (=20), use 0
                             to set no limit
-  -m, --matching-mode TYPE  changes the search mode to TYPE (full or partial)
+  -m, --matching-mode=TYPE  changes the search mode to TYPE (full or partial)
                             (=full)
   --detect-author-keywords  detect keywords that are explicitely written in the
                             document
+Daemon mode options:
+  -i, --recid=RECID         extract keywords for a record and store into DB
+                            (=all necessary ones for pre-defined taxonomies)
+  -c, --collection=COLL     extract keywords for a collection and store into DB
+                            (=all necessary ones for pre-defined taxonomies)
+
+Taxonomy management options:
   --check-taxonomy          checks the taxonomy and reports warnings and errors
   --rebuild-cache           ignores the existing cache and regenerates it
   --no-cache                don't cache the taxonomy
-Daemon specific options:
-  -i, --recid ID            keywords are extracted from this record
-  -c, --collection COLL     keywords are extracted from this collection
 
-Backward compatibility (using these options is discouraged):
+Backward compatibility options (discouraged):
   -q                        equivalent to -s
   -f FILE URL               sets the file to read the keywords from
 
-Example:
+Examples (standalone file mode):
     $ bibclassify -k HEP.rdf http://arxiv.org/pdf/0808.1825
     $ bibclassify -k HEP.rdf article.pdf
-    $ bibclassify -k HEP.rdf directory/"""
+    $ bibclassify -k HEP.rdf directory/
+
+Examples (daemon mode):
+    $ bibclassify -u admin -s 24h -L 23:00-05:00
+    $ bibclassify -u admin -i 1234
+    $ bibclassify -u admin -c Preprints
+"""
     sys.exit(1)
 
 def _display_version():

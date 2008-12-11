@@ -31,7 +31,8 @@ import os
 
 from invenio.dbquery import run_sql
 from invenio.bibtask import task_init, write_message, task_update_progress, \
-    task_set_option, task_get_option, task_sleep_now_if_required
+    task_set_option, task_get_option, task_sleep_now_if_required, \
+    task_get_task_param
 from invenio.bibclassify_engine import output_keywords_for_local_file
 from invenio.config import CFG_BINDIR, CFG_TMPDIR
 from invenio.intbitset import intbitset
@@ -127,9 +128,9 @@ def get_recids_foreach_ontology(recids=None, collections=None, taxonomy=None):
 
     return rec_onts
 
-def update_date_of_last_run():
+def update_date_of_last_run(runtime):
     """Update bibclassify daemon table information about last run time."""
-    run_sql("UPDATE clsMETHOD SET last_updated=NOW()")
+    run_sql("UPDATE clsMETHOD SET last_updated=%s", (runtime,))
 
 def task_submit_elaborate_specific_parameter(key, value, opts, args):
     """Given the string key it checks it's meaning, eventually using the
@@ -182,9 +183,15 @@ def task_submit_elaborate_specific_parameter(key, value, opts, args):
 def task_run_core():
     """Runs anayse_documents for each ontology, collection, record ids
     set."""
+    automated_daemon_mode_p = True
     recids = task_get_option('recids')
     collections = task_get_option('collections')
     taxonomy = task_get_option('taxonomy')
+
+    if recids or collections:
+        # We want to run some records/collection only, so we are not
+        # in the automated daemon mode; this will be useful later.
+        automated_daemon_mode_p = False
 
     # Check if the user specified which documents to extract keywords from.
     if recids:
@@ -197,6 +204,9 @@ def task_run_core():
         onto_recids = get_recids_foreach_ontology()
 
     if not onto_recids:
+        # Nothing to do.
+        if automated_daemon_mode_p:
+            update_date_of_last_run(task_get_task_param('task_starting_time'))
         return 1
 
     changes = []
@@ -246,11 +256,10 @@ def task_run_core():
                 (cmd, errcode), stream=sys.stderr, verbose=0)
             return 0
 
-    # Update the date of last run in the clsMETHOD table.
-    # FIXME This should be changed because it currently registers the time of
-    # the last use of thte ontology. This is clearly a bad behavior as we could
-    # have used it on one record only.
-    # update_date_of_last_run()
+    # Update the date of last run in the clsMETHOD table, but only if
+    # we were running in an automated mode.
+    if automated_daemon_mode_p:
+        update_date_of_last_run(task_get_task_param('task_starting_time'))
     return 1
 
 def analyze_documents(records, ontology, collection):
