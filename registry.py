@@ -22,15 +22,11 @@ import os
 from invenio.ext.registry import PkgResourcesDiscoverRegistry, AutoDiscoverRegistry, RegistryProxy
 from invenio.utils.datastructures import LazyDict
 
-converterext = RegistryProxy('classifierext', AutoDiscoverRegistry, 'classifierext')
+classifierext = RegistryProxy('classifierext', AutoDiscoverRegistry, 'classifierext')
 
-kb = LazyDict(lambda: dict((os.path.basename(f), f)
-              for f in RegistryProxy('converterext.kb',
-                                     PkgResourcesDiscoverRegistry,
-                                     'kb', registry_namespace=converterext)))
-
-templates = LazyDict(lambda: dict((os.path.basename(f), f)
-                     for f in RegistryProxy('converterext.templates',
-                                            PkgResourcesDiscoverRegistry,
-                                            'templates', registry_namespace=converterext)))
+taxonomies_proxy = RegistryProxy('classifierext.taxonomies',
+                                  PkgResourcesDiscoverRegistry,
+                                  'taxonomies', registry_namespace=classifierext)
+taxonomies = LazyDict(lambda: dict((os.path.basename(f), f)
+                      for f in taxonomies_proxy))
 
