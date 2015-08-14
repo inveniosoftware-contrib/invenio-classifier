@@ -182,3 +182,12 @@ exploits the conformation and richness of the thesaurus to produce
 accurate results. It is then clear that Classifier performs best on top
 of rich, well-structured, subject thesauri expressed in the RDF/SKOS
 language.
+
+Happy hacking and thanks for flying Invenio-Classifier.
+
+| Invenio Development Team
+|   Email: info@invenio-software.org
+|   IRC: #invenio on irc.freenode.net
+|   Twitter: http://twitter.com/inveniosoftware
+|   GitHub: https://github.com/inveniosoftware/invenio-classifier
+|   URL: http://invenio-software.org

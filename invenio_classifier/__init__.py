@@ -19,6 +19,8 @@
 
 """Classifier module."""
 
+from __future__ import absolute_import, print_function
+
 from .registry import kb, taxonomies, templates
 
 __all__ = (

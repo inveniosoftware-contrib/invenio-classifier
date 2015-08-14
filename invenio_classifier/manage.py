@@ -17,7 +17,9 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""Perform classifier operations."""
+"""Perform classifier operations such as extracting keywords from PDF."""
+
+from __future__ import absolute_import, print_function
 
 import os
 import sys
@@ -28,7 +30,7 @@ from invenio.ext.script import Manager
 
 from .api import get_keywords_from_local_file
 
-manager = Manager(usage=__doc__)
+manager = Manager(description=__doc__)
 
 
 @manager.option('-f', '--file', dest='filepath',
@@ -58,13 +60,11 @@ manager = Manager(usage=__doc__)
 def extract(filepath, taxonomy, output, limit,
             spires, match_mode, with_author_keywords, extract_acronyms,
             rebuild_cache, only_core_tags, no_cache):
-    """Run keyword extraction on file.
+    """Run keyword extraction on given PDF file for given taxonomy."""
+    if not filepath or not taxonomy:
+        print("No PDF file or taxonomy given!", file=sys.stderr)
+        sys.exit(0)
 
-    .. code-block:: console
-
-        $ inveniomanage classifier extract /path/to/fulltext.pdf /path/to/ontology.rdf
-
-    """
     current_app.logger.info(">>> Going extract keywords from {0} as '{1}'...".format(
         filepath, output
     ))
