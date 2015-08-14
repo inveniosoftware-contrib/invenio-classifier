@@ -35,13 +35,15 @@ from invenio.testsuite import (
     run_test_suite,
 )
 
-TEST_PACKAGE = 'invenio.modules.classifier.testsuite'
-
-test_registry = RegistryProxy('test_registry', ImportPathRegistry,
-                              initial=[TEST_PACKAGE])
-
 
 def _get_test_taxonomies():
+    TEST_PACKAGES = [
+        'invenio_classifier',
+        'demo_package'
+    ]
+
+    test_registry = RegistryProxy('test_registry', ImportPathRegistry,
+                                  initial=TEST_PACKAGES)
     return PkgResourcesDirDiscoveryRegistry(
         'taxonomies', registry_namespace=test_registry)
 
