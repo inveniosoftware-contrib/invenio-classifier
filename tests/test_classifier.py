@@ -79,7 +79,7 @@ class ClassifierTest(ClassifierTestCase):
 
     def test_keywords(self):
         """Test extraction"""
-        from invenio.modules.classifier.api import get_keywords_from_text
+        from invenio_classifier.api import get_keywords_from_text
         out = get_keywords_from_text(
             text_lines=[self.sample_text],
             taxonomy_name=self.taxonomy_name,
@@ -98,7 +98,7 @@ class ClassifierTest(ClassifierTestCase):
 
     def test_rebuild_cache(self):
         """classifier - test rebuilding cache."""
-        from invenio.modules.classifier import reader
+        from invenio_classifier import reader
         info = reader._get_ontology(self.taxonomy_name)
 
         self.assertTrue(info[0])
@@ -121,9 +121,9 @@ class ClassifierTest(ClassifierTestCase):
     def test_cache_accessibility(self):
         """classifier - test cache accessibility/writability"""
         from flask import current_app
-        from invenio.modules.classifier.registry import taxonomies
-        from invenio.modules.classifier import reader
-        from invenio.modules.classifier.errors import TaxonomyError
+        from invenio_classifier.registry import taxonomies
+        from invenio_classifier import reader
+        from invenio_classifier.errors import TaxonomyError
         # we will do tests with a copy of test taxonomy, in case anything goes
         # wrong...
         orig_name, orig_taxonomy_path, orig_taxonomy_url = reader._get_ontology(
