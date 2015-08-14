@@ -39,7 +39,7 @@ from .engine import (
     get_keywords_output,
     get_partial_text,
 )
-from .extractor import text_lines_from_local_file
+from .extractor import text_lines_from_local_file, get_plaintext_document_body
 from .normalizer import cut_references, normalize_fulltext
 from .reader import (
     get_cache,
@@ -54,8 +54,6 @@ def output_keywords_for_sources(input_sources, taxonomy_name, output_mode="text"
                                 rebuild_cache=False, only_core_tags=False, extract_acronyms=False,
                                 **kwargs):
     """Output the keywords for each source in sources."""
-    from invenio.legacy.refextract.engine import get_plaintext_document_body
-
     # Inner function which does the job and it would be too much work to
     # refactor the call (and it must be outside the loop, before it did
     # not process multiple files)
