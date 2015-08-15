@@ -41,7 +41,8 @@ manager = Manager(description=__doc__)
                 help='choose output format (text, dict, raw, html, marcxml).')
 @manager.option('-n', '--keywords-number', dest='limit', default=20,
                 help='the taxonomy file to use.')
-@manager.option('-s', '--spires', dest='spires', default=False, action="store_true",
+@manager.option('-s', '--spires', dest='spires', default=False,
+                action="store_true",
                 help='outputs keywords in the SPIRES format.')
 @manager.option('-m', '--matching-mode', dest='match_mode', default="full",
                 help='choose full or partial searching mode.')
@@ -52,9 +53,11 @@ manager = Manager(description=__doc__)
                 default=False, action="store_true",
                 help='outputs a list of acronyms and expansions found.')
 @manager.option('--rebuild-cache', dest='rebuild_cache', default=False,
-                action="store_true", help='ignores the existing cache and regenerates it')
+                action="store_true",
+                help='ignores the existing cache and regenerates it')
 @manager.option('-r', '--only-core-tags', dest='only_core_tags', default=False,
-                action="store_true", help='keep only CORE single and composite keywords.')
+                action="store_true",
+                help='keep only CORE single and composite keywords.')
 @manager.option('--no-cache', dest='no_cache', default=False,
                 action="store_true", help='do not cache the taxonomy')
 def extract(filepath, taxonomy, output, limit,
@@ -65,9 +68,11 @@ def extract(filepath, taxonomy, output, limit,
         print("No PDF file or taxonomy given!", file=sys.stderr)
         sys.exit(0)
 
-    current_app.logger.info(">>> Going extract keywords from {0} as '{1}'...".format(
-        filepath, output
-    ))
+    current_app.logger.info(
+        ">>> Going extract keywords from {0} as '{1}'...".format(
+            filepath, output
+        )
+    )
     if not os.path.isfile(filepath):
         current_app.logger.error(
             "Path to non-existing file\n",

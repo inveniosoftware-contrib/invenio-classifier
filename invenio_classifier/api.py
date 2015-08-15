@@ -48,11 +48,12 @@ from .reader import (
 )
 
 
-def output_keywords_for_sources(input_sources, taxonomy_name, output_mode="text",
-                                output_limit=cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER'], spires=False,
-                                match_mode="full", no_cache=False, with_author_keywords=False,
-                                rebuild_cache=False, only_core_tags=False, extract_acronyms=False,
-                                **kwargs):
+def output_keywords_for_sources(
+        input_sources, taxonomy_name, output_mode="text",
+        output_limit=cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER'], spires=False,
+        match_mode="full", no_cache=False, with_author_keywords=False,
+        rebuild_cache=False, only_core_tags=False, extract_acronyms=False,
+        **kwargs):
     """Output the keywords for each source in sources."""
     # Inner function which does the job and it would be too much work to
     # refactor the call (and it must be outside the loop, before it did
@@ -66,9 +67,11 @@ def output_keywords_for_sources(input_sources, taxonomy_name, output_mode="text"
         for line in text_lines:
             word_nb += len(re.findall("\S+", line))
 
-        current_app.logger.info("Remote file has %d lines and %d words.".format(
-            line_nb, word_nb
-        ))
+        current_app.logger.info(
+            "Remote file has %d lines and %d words.".format(
+                line_nb, word_nb
+            )
+        )
         return get_keywords_from_text(
             text_lines,
             taxonomy_name,
@@ -112,15 +115,17 @@ def output_keywords_for_sources(input_sources, taxonomy_name, output_mode="text"
                 process_lines()
 
 
-def get_keywords_from_local_file(local_file, taxonomy_name, output_mode="text",
-                                 output_limit=cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"], spires=False,
-                                 match_mode="full", no_cache=False, with_author_keywords=False,
-                                 rebuild_cache=False, only_core_tags=False, extract_acronyms=False):
+def get_keywords_from_local_file(
+        local_file, taxonomy_name, output_mode="text",
+        output_limit=cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"], spires=False,
+        match_mode="full", no_cache=False, with_author_keywords=False,
+        rebuild_cache=False, only_core_tags=False, extract_acronyms=False):
     """Output keywords reading a local file.
 
     Arguments and output are the same as for :see: get_keywords_from_text().
     """
-    current_app.logger.info("Analyzing keywords for local file %s." % local_file)
+    current_app.logger.info(
+        "Analyzing keywords for local file %s." % local_file)
     text_lines = text_lines_from_local_file(local_file)
 
     return get_keywords_from_text(text_lines,
@@ -137,7 +142,8 @@ def get_keywords_from_local_file(local_file, taxonomy_name, output_mode="text",
 
 
 def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
-                           output_limit=cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"],
+                           output_limit=cfg[
+                               "CLASSIFIER_DEFAULT_OUTPUT_NUMBER"],
                            spires=False, match_mode="full", no_cache=False,
                            with_author_keywords=False, rebuild_cache=False,
                            only_core_tags=False, extract_acronyms=False):
@@ -181,10 +187,12 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
         acronyms = extract_abbreviations(fulltext)
 
     single_keywords = extract_single_keywords(_skw, fulltext)
-    composite_keywords = extract_composite_keywords(_ckw, fulltext, single_keywords)
+    composite_keywords = extract_composite_keywords(
+        _ckw, fulltext, single_keywords)
 
     if only_core_tags:
-        single_keywords = clean_before_output(filter_core_keywords(single_keywords))
+        single_keywords = clean_before_output(
+            filter_core_keywords(single_keywords))
         composite_keywords = filter_core_keywords(composite_keywords)
     else:
         # Filter out the "nonstandalone" keywords

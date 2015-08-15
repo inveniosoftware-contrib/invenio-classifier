@@ -56,9 +56,10 @@ def extract_single_keywords(skw_db, fulltext):
 
 
 def extract_composite_keywords(ckw_db, fulltext, skw_spans):
-    """Return a list of composite keywords bound with the number of occurrences.
+    """Return a list of composite keywords bound with number of occurrences.
 
-    :param ckw_db: list of KewordToken objects (they are supposed to be composite ones)
+    :param ckw_db: list of KewordToken objects (they are supposed to be
+                   composite ones)
     :param fulltext: string to search in
     :param skw_spans: dictionary of already identified single keywords
 
@@ -107,8 +108,9 @@ def extract_author_keywords(skw_db, ckw_db, fulltext):
 
 
 def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
-                        author_keywords=None, acronyms=None, output_mode="text",
-                        output_limit=0, spires=False, only_core_tags=False):
+                        author_keywords=None, acronyms=None,
+                        output_mode="text", output_limit=0, spires=False,
+                        only_core_tags=False):
     """Return a formatted string representing the keywords in the chosen style.
 
     This is the main routing call, this function will
@@ -118,7 +120,7 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
     :param single_keywords: list of single keywords
     :param composite_keywords: list of composite keywords
     :param taxonomy_name: string, taxonomy name
-    :param author_keywords: dictionary of author keywords extracted from fulltext
+    :param author_keywords: dictionary of author keywords extracted
     :param acronyms: dictionary of extracted acronyms
     :param output_mode: text|html|marc
     :param output_limit: int, number of maximum keywords printed (it applies
@@ -226,17 +228,21 @@ def _output_marc(output_complete, categories,
     for keywords in (output_complete["Single keywords"],
                      output_complete["Core keywords"]):
         for kw in keywords:
-            output.append(kw_template % (tag, ind1, ind2, encode_for_xml(provenience),
+            output.append(kw_template % (tag, ind1, ind2,
+                                         encode_for_xml(provenience),
                                          encode_for_xml(kw), keywords[kw],
                                          encode_for_xml(categories[kw])))
 
     for field, keywords in ((auth_field, output_complete["Author keywords"]),
                             (acro_field, output_complete["Acronyms"])):
-        if keywords and len(keywords) and field:  # field='' we shall not save the keywords
+        # field='' we shall not save the keywords
+        if keywords and len(keywords) and field:
             tag, ind1, ind2 = _parse_marc_code(field)
             for kw, info in keywords.items():
-                output.append(kw_template % (tag, ind1, ind2, encode_for_xml(provenience),
-                                             encode_for_xml(kw), '', encode_for_xml(categories[kw])))
+                output.append(kw_template % (tag, ind1, ind2,
+                                             encode_for_xml(provenience),
+                                             encode_for_xml(kw), '',
+                                             encode_for_xml(categories[kw])))
 
     return "".join(output)
 
@@ -252,13 +258,17 @@ def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
         resized_skw = skw_matches
         resized_ckw = ckw_matches
 
-    results = {"Core keywords": _get_core_keywords(skw_matches, ckw_matches, spires=spires)}
+    results = {"Core keywords": _get_core_keywords(
+        skw_matches, ckw_matches, spires=spires)}
 
     if not only_core_tags:
-        results["Author keywords"] = _get_author_keywords(author_keywords, spires=spires)
-        results["Composite keywords"] = _get_compositekws(resized_ckw, spires=spires)
+        results["Author keywords"] = _get_author_keywords(
+            author_keywords, spires=spires)
+        results["Composite keywords"] = _get_compositekws(
+            resized_ckw, spires=spires)
         results["Single keywords"] = _get_singlekws(resized_skw, spires=spires)
-        results["Field codes"] = _get_fieldcodes(resized_skw, resized_ckw, spires=spires)
+        results["Field codes"] = _get_fieldcodes(
+            resized_skw, resized_ckw, spires=spires)
         results["Acronyms"] = _get_acronyms(acronyms)
 
     return results
@@ -281,7 +291,8 @@ def _output_text(complete_output, categories):
     for result in complete_output:
         list_result = complete_output[result]
         if list_result:
-            list_result_sorted = sorted(list_result, key=lambda x: list_result[x],
+            list_result_sorted = sorted(list_result,
+                                        key=lambda x: list_result[x],
                                         reverse=True)
             output += "\n\n{0}:\n".format(result)
             for element in list_result_sorted:
@@ -400,7 +411,8 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
         else:  # inherit field-codes from the composites
             for kw in ckw.getComponents():
                 for fieldcode in kw.fieldcodes:
-                    fieldcodes.setdefault(fieldcode, set()).add('%s*' % ckw.output(spires))
+                    fieldcodes.setdefault(fieldcode, set()).add(
+                        '%s*' % ckw.output(spires))
                     fieldcodes.setdefault('*', set()).add(kw.output(spires))
 
     for fieldcode, keywords in fieldcodes.items():
@@ -510,16 +522,18 @@ def _sort_kw_matches(skw_matches, limit=0):
 
 
 def get_partial_text(fulltext):
-    """Return a short version of the fulltext used with the partial matching mode.
+    """Return a short version of the fulltext used with partial matching mode.
 
-    The version is composed of 20% in the beginning and 20% in the middle of the
-    text.
+    The version is composed of 20% in the beginning and 20% in the middle of
+    the text.
     """
     def _get_index(x):
         return int(float(x) / 100 * len(fulltext))
 
-    partial_text = [fulltext[_get_index(start):_get_index(end)]
-                    for start, end in cfg["CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"]]
+    partial_text = [
+        fulltext[_get_index(start):_get_index(end)]
+        for start, end in cfg["CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"]
+    ]
 
     return "\n".join(partial_text)
 

@@ -132,7 +132,8 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
     if os.access(cache_path, os.R_OK):
         if os.access(onto_path, os.R_OK):
             if rebuild or no_cache:
-                current_app.logger.debug("Cache generation was manually forced.")
+                current_app.logger.debug(
+                    "Cache generation was manually forced.")
                 return _build_cache(onto_path, skip_cache=no_cache)
         else:
             # ontology file not found. Use the cache instead.
@@ -167,8 +168,10 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
             raise TaxonomyError('We cannot read/write into: %s. '
                                 'Aborting!' % cache_path)
         elif not no_cache and os.path.exists(cache_path):
-            current_app.logger.warning('Cache %s exists, but is not readable!' % cache_path)
-        current_app.logger.info("Cache not available. Building it now: %s" % onto_path)
+            current_app.logger.warning(
+                'Cache %s exists, but is not readable!' % cache_path)
+        current_app.logger.info(
+            "Cache not available. Building it now: %s" % onto_path)
         return _build_cache(onto_path, skip_cache=no_cache)
 
     else:
@@ -264,7 +267,8 @@ def _discover_ontology(ontology_name):
     elif last_part + ".rdf" in taxonomies:
         return taxonomies.get(last_part + ".rdf")
     else:
-        current_app.logger.debug("No taxonomy with pattern '%s' found" % ontology_name)
+        current_app.logger.debug(
+            "No taxonomy with pattern '%s' found" % ontology_name)
 
     # LEGACY
     possible_patterns = [last_part, last_part.lower()]
@@ -278,7 +282,8 @@ def _discover_ontology(ontology_name):
               os.path.join(os.path.dirname(__file__), "classifier"),
               cfg["CFG_WEBDIR"]]
 
-    current_app.logger.debug("Searching for taxonomy using string: %s" % last_part)
+    current_app.logger.debug(
+        "Searching for taxonomy using string: %s" % last_part)
     current_app.logger.debug("Possible patterns: %s" % possible_patterns)
     for path in places:
 
@@ -293,18 +298,24 @@ def _discover_ontology(ontology_name):
                             filepath = os.path.abspath(os.path.join(path,
                                                                     filename))
                             if (os.access(filepath, os.R_OK)):
-                                current_app.logger.debug("Found taxonomy at: {0}".format(filepath))
+                                current_app.logger.debug(
+                                    "Found taxonomy at: {0}".format(filepath))
                                 return filepath
                             else:
                                 current_app.logger.warning(
                                     'Found taxonomy at: {0}, but it is'
-                                    ' not readable. Continue searching...'.format(filepath)
+                                    ' not readable. Continue '
+                                    'searching...'.format(
+                                        filepath
+                                    )
                                 )
         except OSError, os_error_msg:
             current_app.logger.exception(
-                'OS Error when listing path "{0}": {1}'.format(str(path), str(os_error_msg))
+                'OS Error when listing path "{0}": {1}'.format(
+                    str(path), str(os_error_msg))
             )
-    current_app.logger.debug("No taxonomy with pattern '{0}' found".format(ontology_name))
+    current_app.logger.debug(
+        "No taxonomy with pattern '{0}' found".format(ontology_name))
 
 
 class KeywordToken:
@@ -431,7 +442,8 @@ class KeywordToken:
             if not component_positions:
                 current_app.logger.error(
                     "Keyword is marked as composite, "
-                    "but no composite components refs found: {0}".format(self.short_id)
+                    "but no composite components refs found: {0}".format(
+                        self.short_id)
                 )
             else:
                 self.compositeof = map(lambda x: x[1], component_positions)
@@ -448,7 +460,7 @@ class KeywordToken:
             if label in single_keywords:
                 new_vals.append(single_keywords[label])
             elif ('Composite.%s' % label) in composite_keywords:
-                for l in composite_keywords['Composite.%s' % label].compositeof:
+                for l in composite_keywords['Composite.{0}'.format(label)].compositeof:  # noqa
                     _get_ckw_components(new_vals, l)
             elif label in composite_keywords:
                 for l in composite_keywords[label].compositeof:
@@ -462,7 +474,7 @@ class KeywordToken:
                 if store is not None:
                     message += "Needed components: %s"\
                                % list(store.objects(self.id,
-                                      namespace["compositeOf"]))
+                                                    namespace["compositeOf"]))
                 message += " Missing is: %s" % label
                 raise TaxonomyError(message)
 
@@ -566,7 +578,8 @@ def _build_cache(source_file, skip_cache=False):
     single_keywords, composite_keywords = {}, {}
 
     try:
-        current_app.logger.info("Building RDFLib's conjunctive graph from: %s" % source_file)
+        current_app.logger.info(
+            "Building RDFLib's conjunctive graph from: %s" % source_file)
         try:
             store.parse(source_file)
         except urllib2.URLError:
@@ -648,7 +661,8 @@ def _build_cache(source_file, skip_cache=False):
                         % cache_path)
                     current_app.logger.error(msg)
                 else:
-                    current_app.logger.debug("Writing cache to file %s" % cache_path)
+                    current_app.logger.debug(
+                        "Writing cache to file %s" % cache_path)
                     cPickle.dump(cached_data, filestream, 1)
                 if filestream:
                     filestream.close()
@@ -875,7 +889,7 @@ def _get_searchable_regex(basic=None, hidden=None):
             hidden_regex_dict[hidden_label] = \
                 re.compile(
                     cfg["CLASSIFIER_WORD_WRAP"] % hidden_label[1:-1]
-                )
+            )
         else:
             pattern = _get_regex_pattern(hidden_label)
             hidden_regex_dict[hidden_label] = re.compile(
@@ -967,7 +981,7 @@ def check_taxonomy(taxonomy):
         strsubject = str(subject).split("#Composite.")[-1]
         strsubject = strsubject.split("#")[-1]
         if (strsubject == "http://cern.ch/thesauri/HEPontology.rdf" or
-           strsubject == "compositeOf"):
+                strsubject == "compositeOf"):
             continue
         components = {}
         for predicate, value in store.predicate_objects(subject):

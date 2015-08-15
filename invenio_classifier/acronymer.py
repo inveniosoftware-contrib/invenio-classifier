@@ -77,13 +77,15 @@ def get_acronyms(fulltext):
         # LEVEL 1: expansion with uppercase initials
         match = re.search(pattern, potential_expansion)
         if match is not None:
-            _add_expansion_to_acronym_dict(acronym, match.group(1), 1, acronyms)
+            _add_expansion_to_acronym_dict(
+                acronym, match.group(1), 1, acronyms)
             continue
 
         # LEVEL 2: expansion with initials
         match = re.search(pattern, potential_expansion, re.I)
         if match is not None:
-            _add_expansion_to_acronym_dict(acronym, match.group(1), 2, acronyms)
+            _add_expansion_to_acronym_dict(
+                acronym, match.group(1), 2, acronyms)
             continue
 
         # LEVEL 3: expansion with initials and STOPLIST
@@ -95,8 +97,10 @@ def get_acronyms(fulltext):
         if match is not None:
             first_expansion_word = re.search("\w+", match.group(1)).group()
             start = potential_expansion.lower().rfind(first_expansion_word)
-            _add_expansion_to_acronym_dict(acronym, potential_expansion[start:],
-                                           3, acronyms)
+            _add_expansion_to_acronym_dict(
+                acronym, potential_expansion[start:],
+                3, acronyms
+            )
             continue
 
         # LEVEL 4: expansion with fuzzy initials and stoplist
@@ -237,7 +241,8 @@ def _add_expansion_to_acronym_dict(acronym, expansion, level, dictionary):
         for stored_expansion, stored_level in dictionary[acronym]:
             if _equivalent_expansions(stored_expansion, expansion):
                 if level < stored_level:
-                    dictionary[acronym].remove((stored_expansion, stored_level))
+                    dictionary[acronym].remove(
+                        (stored_expansion, stored_level))
                     break
                 else:
                     add = False

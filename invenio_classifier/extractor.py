@@ -114,15 +114,16 @@ def get_plaintext_document_body(fpath, keep_layout=False):
     """
     textbody = []
     status = 0
-    if os.access(fpath, os.F_OK|os.R_OK):
+    if os.access(fpath, os.F_OK | os.R_OK):
         # filepath OK - attempt to extract references:
         # get file type:
         cmd_pdftotext = [current_app.config.get("CFG_PATH_GFILE"), fpath]
-        pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
+        pipe_pdftotext = subprocess.Popen(cmd_pdftotext,
+                                          stdout=subprocess.PIPE)
         res_gfile = pipe_pdftotext.stdout.read()
 
         if (res_gfile.lower().find("text") != -1) and \
-            (res_gfile.lower().find("pdf") == -1):
+                (res_gfile.lower().find("pdf") == -1):
             # plain-text file: don't convert - just read in:
             f = open(fpath, "r")
             try:
@@ -130,7 +131,7 @@ def get_plaintext_document_body(fpath, keep_layout=False):
             finally:
                 f.close()
         elif (res_gfile.lower().find("pdf") != -1) or \
-            (res_gfile.lower().find("pdfa") != -1):
+                (res_gfile.lower().find("pdfa") != -1):
             # convert from PDF
             (textbody, status) = convert_PDF_to_plaintext(fpath, keep_layout)
         else:
@@ -163,7 +164,8 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
     # and footers, and for some other pattern matching.
     p_break_in_line = re.compile(ur'^\s*\f(.+)$', re.UNICODE)
     # build pdftotext command:
-    cmd_pdftotext = [current_app.config.get("CFG_PATH_PDFTOTEXT"), layout_option, "-q",
+    cmd_pdftotext = [current_app.config.get("CFG_PATH_PDFTOTEXT"),
+                     layout_option, "-q",
                      "-enc", "UTF-8", fpath, "-"]
     current_app.logger.debug("* %s" % ' '.join(cmd_pdftotext))
     # open pipe to pdftotext:

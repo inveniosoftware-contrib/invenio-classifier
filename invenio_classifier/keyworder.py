@@ -96,9 +96,10 @@ def get_single_keywords(skw_db, fulltext):
 
 
 def get_composite_keywords(ckw_db, fulltext, skw_spans):
-    """Return a list of composite keywords bound with the number of occurrences found.
+    """Return a list of composite keywords bound with number of occurrences.
 
-    :param ckw_db: list of KewordToken objects (they are supposed to be composite ones)
+    :param ckw_db: list of KewordToken objects
+                   (they are supposed to be composite ones)
     :param fulltext: string to search in
     :param skw_spans: dictionary of already identified single keywords
 
@@ -258,7 +259,8 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
     split_string = cfg["CLASSIFIER_AUTHOR_KW_START"].split(fulltext, 1)
     if len(split_string) == 1:
-        current_app.logger.info("No keyword marker found when matching authors.")
+        current_app.logger.info(
+            "No keyword marker found when matching authors.")
         return out
 
     kw_string = split_string[1]

@@ -26,7 +26,8 @@ import re
 
 CLASSIFIER_DEFAULT_OUTPUT_NUMBER = 20
 """Number of keywords that are printed by default.
-This limits single keywords, composite keywords, and acronyms - not author keywords."""
+This limits single keywords, composite keywords, and acronyms - not author
+keywords."""
 
 CLASSIFIER_RECORD_KEYWORD_FIELD = '6531_'
 """The main marc xml field where to find/save the keywords."""
@@ -54,7 +55,8 @@ CLASSIFIER_INVARIABLE_WORDS = (
     "flux", "fine", "final", "heavy",
     "strange"
 )
-"""If the keyword belongs in 'INVARIABLE_WORDS', we return it without any change."""
+"""If the keyword belongs in 'INVARIABLE_WORDS', we return it without
+any change."""
 
 CLASSIFIER_EXCEPTIONS = {
     "aluminium": r"alumini?um",
@@ -81,7 +83,8 @@ CLASSIFIER_EXCEPTIONS = {
     "vertex": r"vert(ex(es)?|ices)",
     "vortex": r"vort(ex(es)?|ices)",
 }
-"""If the keyword is found in 'EXCEPTIONS', we return its attached regular expression."""
+"""If the keyword is found in 'EXCEPTIONS', we return its attached regular
+expression."""
 
 CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS = (
     re.compile("[^e]ed$"),
@@ -112,7 +115,8 @@ CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS = (
     (re.compile("([^o])us$"), r"\1(i|us(es)?)"),
     (re.compile("um$"), r"(a|ums?)"),
 )
-"""The classifier creates a regular expression for each label found in the ontology.
+"""The classifier creates a regular expression for each label found in the
+ontology.
 
 At last, we perform the sub method of Python's re module using the
 first element of the tuple as the regex and the second element as the
@@ -132,7 +136,8 @@ CLASSIFIER_SEPARATORS = {
     "- ": r"\s?\-\s",
     "+ ": r"\s?\+\s",
 }
-"""The transformation for the non-alpha characters that can be found between two words."""
+"""The transformation for the non-alpha characters that can be found between
+two words."""
 
 CLASSIFIER_SYMBOLS = {
     "'": r"\s?\'",
@@ -147,8 +152,8 @@ CLASSIFIER_VALID_SEPARATORS = (
     "of new", "of other", "of many", "of both", "of these", "of each", "is",
     "the"
 )
-"""When searching for composite keywords, we allow two keywords separated by one
-of the component of 'VALID_SEPARATORS' to form a composite keyword. These
+"""When searching for composite keywords, we allow two keywords separated by
+one of the component of 'VALID_SEPARATORS' to form a composite keyword. These
 separators contain also the punctuation."""
 
 

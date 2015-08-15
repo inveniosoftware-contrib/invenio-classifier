@@ -66,10 +66,15 @@ def classify_paper(obj, eng, callback, data,
     )
 
 
-def classify_paper_with_oaiharvester(taxonomy, rebuild_cache=False, no_cache=False,
-                                     output_limit=20, spires=False,
-                                     match_mode='full', with_author_keywords=False,
-                                     extract_acronyms=False, only_core_tags=False,
+def classify_paper_with_oaiharvester(taxonomy,
+                                     rebuild_cache=False,
+                                     no_cache=False,
+                                     output_limit=20,
+                                     spires=False,
+                                     match_mode='full',
+                                     with_author_keywords=False,
+                                     extract_acronyms=False,
+                                     only_core_tags=False,
                                      fast_mode=False):
     """Extract keywords from a pdf file or metadata in a OAI harvest."""
     from ..api import (
@@ -81,7 +86,8 @@ def classify_paper_with_oaiharvester(taxonomy, rebuild_cache=False, no_cache=Fal
         data = None
         is_fast_mode = fast_mode
         if not is_fast_mode:
-            if "_result" in obj.extra_data and "pdf" in obj.extra_data["_result"]:
+            if "_result" in obj.extra_data and \
+              "pdf" in obj.extra_data["_result"]:
                 data = obj.extra_data["_result"]["pdf"]
                 callback = get_keywords_from_local_file
             else:

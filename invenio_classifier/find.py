@@ -68,15 +68,17 @@ def find_reference_section(docbody):
         if title_match:
             title = title_match.group('title')
             index = len(docbody) - 1 - reversed_index
-            temp_ref_details, found_title = find_numeration(docbody[index:index+6], title)
+            temp_ref_details, found_title = find_numeration(
+                docbody[index:index+6], title
+            )
             if temp_ref_details:
                 if ref_details and 'title' in ref_details \
-                               and ref_details['title'] \
-                               and not temp_ref_details['title']:
+                   and ref_details['title'] \
+                   and not temp_ref_details['title']:
                     continue
                 if ref_details and 'marker' in ref_details \
-                               and ref_details['marker'] \
-                               and not temp_ref_details['marker']:
+                   and ref_details['marker'] \
+                   and not temp_ref_details['marker']:
                     continue
 
                 ref_details = temp_ref_details
@@ -144,10 +146,8 @@ def find_numeration_in_title(docbody, title):
     # Need to escape to avoid problems like 'References['
     title = re.escape(title)
 
-    mk_with_title_ptns = \
-       get_reference_line_numeration_marker_patterns(title)
-    mk_with_title_match = \
-       regex_match_list(first_line, mk_with_title_ptns)
+    mk_with_title_ptns = get_reference_line_numeration_marker_patterns(title)
+    mk_with_title_match = regex_match_list(first_line, mk_with_title_ptns)
     if mk_with_title_match:
         mk = mk_with_title_match.group('mark')
         mk_ptn = mk_with_title_match.re.pattern
@@ -196,100 +196,110 @@ def find_numeration(docbody, title):
 
 
 def find_reference_section_no_title_via_brackets(docbody):
-    """This function would generally be used when it was not possible to locate
-       the start of a document's reference section by means of its title.
-       Instead, this function will look for reference lines that have numeric
-       markers of the format [1], [2], etc.
-       @param docbody: (list) of strings -each string is a line in the document.
-       @return: (dictionary) :
-         { 'start_line' : (integer) - index in docbody of 1st reference line,
-           'title_string' : (None) - title of the reference section
-                                     (None since no title),
-           'marker' : (string) - the marker of the first reference line,
-           'marker_pattern' : (string) - the regexp string used to find the
-                                         marker,
-           'title_marker_same_line' : (integer) 0 - to signal title not on same
-                                       line as marker.
-         }
-                 Much of this information is used by later functions to rebuild
-                 a reference section.
-         -- OR --
-                (None) - when the reference section could not be found.
+    """Find reference section via numeric markers.
+
+    This function would generally be used when it was not possible to locate
+    the start of a document's reference section by means of its title.
+    Instead, this function will look for reference lines that have numeric
+    markers of the format [1], [2], etc.
+
+    @param docbody: (list) of strings -each string is a line in the document.
+    @return: (dictionary) :
+     { 'start_line' : (integer) - index in docbody of 1st reference line,
+       'title_string' : (None) - title of the reference section
+                                 (None since no title),
+       'marker' : (string) - the marker of the first reference line,
+       'marker_pattern' : (string) - the regexp string used to find the
+                                     marker,
+       'title_marker_same_line' : (integer) 0 - to signal title not on same
+                                   line as marker.
+     }
+             Much of this information is used by later functions to rebuild
+             a reference section.
+     -- OR --
+            (None) - when the reference section could not be found.
     """
     marker_patterns = [re_reference_line_bracket_markers]
     return find_reference_section_no_title_generic(docbody, marker_patterns)
 
 
 def find_reference_section_no_title_via_dots(docbody):
-    """This function would generally be used when it was not possible to locate
-       the start of a document's reference section by means of its title.
-       Instead, this function will look for reference lines that have numeric
-       markers of the format 1., 2., etc.
-       @param docbody: (list) of strings -each string is a line in the document.
-       @return: (dictionary) :
-         { 'start_line' : (integer) - index in docbody of 1st reference line,
-           'title_string' : (None) - title of the reference section
-                                     (None since no title),
-           'marker' : (string) - the marker of the first reference line,
-           'marker_pattern' : (string) - the regexp string used to find the
-                                         marker,
-           'title_marker_same_line' : (integer) 0 - to signal title not on same
-                                       line as marker.
-         }
-                 Much of this information is used by later functions to rebuild
-                 a reference section.
-         -- OR --
-                (None) - when the reference section could not be found.
+    """Find reference section via dots.
+
+    This function would generally be used when it was not possible to locate
+    the start of a document's reference section by means of its title.
+    Instead, this function will look for reference lines that have numeric
+    markers of the format 1., 2., etc.
+    @param docbody: (list) of strings -each string is a line in the document.
+    @return: (dictionary) :
+     { 'start_line' : (integer) - index in docbody of 1st reference line,
+       'title_string' : (None) - title of the reference section
+                                 (None since no title),
+       'marker' : (string) - the marker of the first reference line,
+       'marker_pattern' : (string) - the regexp string used to find the
+                                     marker,
+       'title_marker_same_line' : (integer) 0 - to signal title not on same
+                                   line as marker.
+     }
+             Much of this information is used by later functions to rebuild
+             a reference section.
+     -- OR --
+            (None) - when the reference section could not be found.
     """
     marker_patterns = [re_reference_line_dot_markers]
     return find_reference_section_no_title_generic(docbody, marker_patterns)
 
 
 def find_reference_section_no_title_via_numbers(docbody):
-    """This function would generally be used when it was not possible to locate
-       the start of a document's reference section by means of its title.
-       Instead, this function will look for reference lines that have numeric
-       markers of the format 1, 2, etc.
-       @param docbody: (list) of strings -each string is a line in the document.
-       @return: (dictionary) :
-         { 'start_line' : (integer) - index in docbody of 1st reference line,
-           'title_string' : (None) - title of the reference section
-                                     (None since no title),
-           'marker' : (string) - the marker of the first reference line,
-           'marker_pattern' : (string) - the regexp string used to find the
-                                         marker,
-           'title_marker_same_line' : (integer) 0 - to signal title not on same
-                                       line as marker.
-         }
-                 Much of this information is used by later functions to rebuild
-                 a reference section.
-         -- OR --
-                (None) - when the reference section could not be found.
+    """Find reference section via numbers.
+
+    This function would generally be used when it was not possible to locate
+    the start of a document's reference section by means of its title.
+    Instead, this function will look for reference lines that have numeric
+    markers of the format 1, 2, etc.
+    @param docbody: (list) of strings -each string is a line in the document.
+    @return: (dictionary) :
+     { 'start_line' : (integer) - index in docbody of 1st reference line,
+       'title_string' : (None) - title of the reference section
+                                 (None since no title),
+       'marker' : (string) - the marker of the first reference line,
+       'marker_pattern' : (string) - the regexp string used to find the
+                                     marker,
+       'title_marker_same_line' : (integer) 0 - to signal title not on same
+                                   line as marker.
+     }
+             Much of this information is used by later functions to rebuild
+             a reference section.
+     -- OR --
+            (None) - when the reference section could not be found.
     """
     marker_patterns = [re_reference_line_number_markers]
     return find_reference_section_no_title_generic(docbody, marker_patterns)
 
 
 def find_reference_section_no_title_generic(docbody, marker_patterns):
-    """This function would generally be used when it was not possible to locate
-       the start of a document's reference section by means of its title.
-       Instead, this function will look for reference lines that have numeric
-       markers of the format [1], [2], {1}, {2}, etc.
-       @param docbody: (list) of strings -each string is a line in the document.
-       @return: (dictionary) :
-         { 'start_line' : (integer) - index in docbody of 1st reference line,
-           'title_string' : (None) - title of the reference section
-                                     (None since no title),
-           'marker' : (string) - the marker of the first reference line,
-           'marker_pattern' : (string) - the regexp string used to find the
-                                         marker,
-           'title_marker_same_line' : (integer) 0 - to signal title not on same
-                                       line as marker.
-         }
-                 Much of this information is used by later functions to rebuild
-                 a reference section.
-         -- OR --
-                (None) - when the reference section could not be found.
+    """Find reference section.
+
+    This function would generally be used when it was not possible to locate
+    the start of a document's reference section by means of its title.
+    Instead, this function will look for reference lines that have numeric
+    markers of the format [1], [2], {1}, {2}, etc.
+
+    @param docbody: (list) of strings -each string is a line in the document.
+    @return: (dictionary) :
+     { 'start_line' : (integer) - index in docbody of 1st reference line,
+       'title_string' : (None) - title of the reference section
+                                 (None since no title),
+       'marker' : (string) - the marker of the first reference line,
+       'marker_pattern' : (string) - the regexp string used to find the
+                                     marker,
+       'title_marker_same_line' : (integer) 0 - to signal title not on same
+                                   line as marker.
+     }
+             Much of this information is used by later functions to rebuild
+             a reference section.
+     -- OR --
+            (None) - when the reference section could not be found.
     """
     if not docbody:
         return None
@@ -333,11 +343,11 @@ def find_reference_section_no_title_generic(docbody, marker_patterns):
 
     if found_ref_sect:
         ref_sectn_details = {
-            'start_line'             : ref_start_line,
-            'title_string'           : None,
-            'marker'                 : ref_line_marker.strip(),
-            'marker_pattern'         : ref_line_marker_pattern,
-            'title_marker_same_line' : False,
+            'start_line': ref_start_line,
+            'title_string': None,
+            'marker': ref_line_marker.strip(),
+            'marker_pattern': ref_line_marker_pattern,
+            'title_marker_same_line': False,
         }
     else:
         # didn't manage to find the reference section
@@ -350,24 +360,26 @@ def find_end_of_reference_section(docbody,
                                   ref_start_line,
                                   ref_line_marker,
                                   ref_line_marker_ptn):
-    """Given that the start of a document's reference section has already been
-       recognised, this function is tasked with finding the line-number in the
-       document of the last line of the reference section.
-       @param docbody: (list) of strings - the entire plain-text document body.
-       @param ref_start_line: (integer) - the index in docbody of the first line
-        of the reference section.
-       @param ref_line_marker: (string) - the line marker of the first reference
-        line.
-       @param ref_line_marker_ptn: (string) - the pattern used to search for a
-        reference line marker.
-       @return: (integer) - index in docbody of the last reference line
-         -- OR --
-                (None) - if ref_start_line was invalid.
+    """Find end of reference section.
+
+    Given that the start of a document's reference section has already been
+    recognised, this function is tasked with finding the line-number in the
+    document of the last line of the reference section.
+
+    @param docbody: (list) of strings - the entire plain-text document body.
+    @param ref_start_line: (integer) - the index in docbody of the first line
+    of the reference section.
+    @param ref_line_marker: (string) - the line marker of the first reference
+    line.
+    @param ref_line_marker_ptn: (string) - the pattern used to search for a
+    reference line marker.
+    @return: (integer) - index in docbody of the last reference line
+     -- OR --
+            (None) - if ref_start_line was invalid.
     """
     section_ended = False
     x = ref_start_line
-    if type(x) is not int or x < 0 or \
-           x > len(docbody) or len(docbody) < 1:
+    if type(x) is not int or x < 0 or x > len(docbody) or len(docbody) < 1:
         # The provided 'first line' of the reference section was invalid.
         # Either it was out of bounds in the document body, or it was not a
         # valid integer.
@@ -378,7 +390,7 @@ def find_end_of_reference_section(docbody,
     kw_patterns = get_post_reference_section_keyword_patterns()
 
     if None not in (ref_line_marker, ref_line_marker_ptn):
-        mk_patterns = [re.compile(ref_line_marker_ptn, re.I|re.UNICODE)]
+        mk_patterns = [re.compile(ref_line_marker_ptn, re.I | re.UNICODE)]
     else:
         mk_patterns = get_reference_line_numeration_marker_patterns()
 
@@ -392,15 +404,15 @@ def find_end_of_reference_section(docbody,
             except (ValueError, IndexError):
                 # non numerical references marking
                 pass
-        # look for a likely section title that would follow a reference section:
+        # look for a likely section title that would follow a reference section
         end_match = regex_match_list(docbody[x].strip(), t_patterns)
         if not end_match:
             # didn't match a section title - try looking for keywords that
             # suggest the end of a reference section:
             end_match = regex_match_list(docbody[x].strip(), kw_patterns)
         else:
-            # Is it really the end of the reference section? Check within the next
-            # 5 lines for other reference numeration markers:
+            # Is it really the end of the reference section? Check within the
+            # next 5 lines for other reference numeration markers:
             y = x + 1
             line_found = False
             while y < x + 200 and y < len(docbody) and not line_found:
@@ -427,12 +439,12 @@ def find_end_of_reference_section(docbody,
             # Does this & the next 5 lines simply contain numbers? If yes, it's
             # probably the axis scale of a graph in a fig. End refs section
             digit_test_str = docbody[x].replace(" ", "").\
-                                        replace(".", "").\
-                                        replace("-", "").\
-                                        replace("+", "").\
-                                        replace(u"\u00D7", "").\
-                                        replace(u"\u2212", "").\
-                                        strip()
+                replace(".", "").\
+                replace("-", "").\
+                replace("+", "").\
+                replace(u"\u00D7", "").\
+                replace(u"\u2212", "").\
+                strip()
             if len(digit_test_str) > 10 and digit_test_str.isdigit():
                 # The line contains only digits and is longer than 10 chars:
                 y = x + 1
@@ -440,12 +452,12 @@ def find_end_of_reference_section(docbody,
                 num_digit_lines = 1
                 while y < x + digit_lines and y < len(docbody):
                     digit_test_str = docbody[y].replace(" ", "").\
-                                     replace(".", "").\
-                                     replace("-", "").\
-                                     replace("+", "").\
-                                     replace(u"\u00D7", "").\
-                                     replace(u"\u2212", "").\
-                                     strip()
+                        replace(".", "").\
+                        replace("-", "").\
+                        replace("+", "").\
+                        replace(u"\u00D7", "").\
+                        replace(u"\u2212", "").\
+                        strip()
                     if len(digit_test_str) > 10 and digit_test_str.isdigit():
                         num_digit_lines += 1
                     elif len(digit_test_str) == 0:
@@ -461,40 +473,44 @@ def find_end_of_reference_section(docbody,
 
 def get_reference_section_beginning(fulltext):
 
-    sect_start = {'start_line'     : None,
-                  'end_line'       : None,
-                  'title_string'   : None,
-                  'marker_pattern' : None,
-                  'marker'         : None,
-                  'how_found_start': None,
-                  }
+    sect_start = {
+        'start_line': None,
+        'end_line': None,
+        'title_string': None,
+        'marker_pattern': None,
+        'marker': None,
+        'how_found_start': None,
+    }
 
-    ## Find start of refs section:
+    # Find start of refs section:
     sect_start = find_reference_section(fulltext)
     if sect_start is not None:
         sect_start['how_found_start'] = 1
     else:
-        ## No references found - try with no title option
+        # No references found - try with no title option
         sect_start = find_reference_section_no_title_via_brackets(fulltext)
         if sect_start is not None:
             sect_start['how_found_start'] = 2
-        ## Try weaker set of patterns if needed
+        # Try weaker set of patterns if needed
         if sect_start is None:
-            ## No references found - try with no title option (with weaker patterns..)
+            # No references found - try with no title option (with weaker
+            # patterns..)
             sect_start = find_reference_section_no_title_via_dots(fulltext)
             if sect_start is not None:
                 sect_start['how_found_start'] = 3
             if sect_start is None:
-                ## No references found - try with no title option (with even weaker patterns..)
-                sect_start = find_reference_section_no_title_via_numbers(fulltext)
+                # No references found - try with no title option (with even
+                # weaker patterns..)
+                sect_start = find_reference_section_no_title_via_numbers(
+                    fulltext)
                 if sect_start is not None:
                     sect_start['how_found_start'] = 4
 
     if sect_start:
         current_app.logger.debug('* title %r' % sect_start['title_string'])
         current_app.logger.debug('* marker %r' % sect_start['marker'])
-        current_app.logger.debug('* title_marker_same_line %s' \
-            % sect_start['title_marker_same_line'])
+        current_app.logger.debug('* title_marker_same_line %s'
+                                 % sect_start['title_marker_same_line'])
     else:
         current_app.logger.debug('* could not find references section')
     return sect_start
