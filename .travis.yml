@@ -28,6 +28,8 @@ services:
   - mysql
   - redis
 
+sudo: false
+
 language: python
 
 cache:
@@ -35,16 +37,14 @@ cache:
   - pip
 
 env:
-  - REQUIREMENTS=lowest REXTRAS=docs,test
-  - REQUIREMENTS=release REXTRAS=docs,test
-  - REQUIREMENTS=devel REXTRAS=docs,test
+  - REQUIREMENTS=lowest REXTRAS=docs,tests
+  - REQUIREMENTS=release REXTRAS=docs,tests
+  - REQUIREMENTS=devel REXTRAS=docs,tests
 
 python:
   - "2.7"
 
 before_install:
-  - "sudo apt-get update"
-  - "sudo apt-get install python-dev"
   - "travis_retry pip install --upgrade pip"
   - "travis_retry pip install mock"
   - "python requirements.py --extras=$REXTRAS --level=min > .travis-lowest-requirements.txt"
@@ -52,6 +52,7 @@ before_install:
   - "python requirements.py --extras=$REXTRAS --level=dev > .travis-devel-requirements.txt"
 
 install:
+  - "travis_retry pip install 'Invenio>=2.0.3'"  # FIXME temporary install
   - "travis_retry pip install unittest2"
   - "travis_retry pip install -r .travis-$REQUIREMENTS-requirements.txt --allow-all-external --quiet"
   - "travis_retry pip install -e .[$REXTRAS] --quiet --process-dependency-links"
