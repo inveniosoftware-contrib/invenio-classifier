@@ -40,6 +40,7 @@ requirements = [
 ]
 
 test_requirements = [
+    'Flask-Testing>=0.4.2',
     'pytest>=2.7.0',
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
