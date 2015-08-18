@@ -27,7 +27,7 @@ import time
 from flask_registry import (
     ImportPathRegistry,
     PkgResourcesDirDiscoveryRegistry,
-    RegistryProxy
+    RegistryProxy,
 )
 from invenio.testsuite import (
     InvenioTestCase,
@@ -51,6 +51,13 @@ def _get_test_taxonomies():
 class ClassifierTestCase(InvenioTestCase):
 
     """Basic test class used for classifier tests."""
+
+    @property
+    def config(self):
+        from invenio.base.config import PACKAGES
+        default_config = super(ClassifierTestCase, self).config
+        default_config["PACKAGES"] = PACKAGES + ["invenio_classifier"]
+        return default_config
 
     def setUp(self):
         """Initialize stuff."""
