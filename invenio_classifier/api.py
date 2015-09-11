@@ -26,7 +26,7 @@ import re
 
 from flask import current_app
 
-from invenio.base.globals import cfg
+from invenio_base.globals import cfg
 from invenio.utils.filedownload import download_url
 
 from .engine import (

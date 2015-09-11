@@ -31,7 +31,7 @@ import time
 
 from flask import current_app
 
-from invenio.base.globals import cfg
+from invenio_base.globals import cfg
 
 from .errors import OntologyError
 

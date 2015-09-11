@@ -27,7 +27,7 @@ from __future__ import print_function
 
 import os
 
-from invenio.base.globals import cfg
+from invenio_base.globals import cfg
 from invenio.utils.text import encode_for_xml
 
 from six import iteritems

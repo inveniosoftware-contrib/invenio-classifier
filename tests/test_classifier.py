@@ -54,7 +54,7 @@ class ClassifierTestCase(InvenioTestCase):
 
     @property
     def config(self):
-        from invenio.base.config import PACKAGES
+        from invenio_base.config import PACKAGES
         default_config = super(ClassifierTestCase, self).config
         default_config["PACKAGES"] = PACKAGES + ["invenio_classifier"]
         return default_config
