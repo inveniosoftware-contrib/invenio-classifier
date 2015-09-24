@@ -29,3 +29,4 @@
 #     -e git+git://github.com/mitsuhiko/jinja2.git#egg=Jinja2
 
 -e git+git://github.com/inveniosoftware/invenio-base.git#egg=invenio-base
+-e git+git://github.com/inveniosoftware/invenio-utils.git#egg=invenio-utils

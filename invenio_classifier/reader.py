@@ -44,7 +44,7 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 from invenio_base.globals import cfg
-from invenio.utils.url import make_invenio_opener
+from invenio_utils.url import make_invenio_opener
 
 import rdflib
 
