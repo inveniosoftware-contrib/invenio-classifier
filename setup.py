@@ -39,7 +39,7 @@ requirements = [
     'invenio-base>=0.3.1',
     'invenio-ext>=0.3.1',
     'invenio-records>=0.3.3',
-    'invenio-utils>=0.1.1',
+    'invenio-utils>=0.2.0',
 ]
 
 test_requirements = [
