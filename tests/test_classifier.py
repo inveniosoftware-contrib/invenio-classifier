@@ -29,11 +29,7 @@ from flask_registry import (
     PkgResourcesDirDiscoveryRegistry,
     RegistryProxy,
 )
-from invenio.testsuite import (
-    InvenioTestCase,
-    make_test_suite,
-    run_test_suite,
-)
+from invenio_testing import InvenioTestCase
 
 
 def _get_test_taxonomies():
@@ -251,10 +247,3 @@ class ClassifierTest(ClassifierTestCase):
         cache = reader._get_cache_path(name)
         os.remove(taxonomy_path)
         os.remove(cache)
-
-
-TEST_SUITE = make_test_suite(ClassifierTest)
-
-
-if __name__ == '__main__':
-    run_test_suite(TEST_SUITE)
