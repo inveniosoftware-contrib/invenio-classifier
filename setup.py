@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -36,18 +36,20 @@ history = open('CHANGES.rst').read()
 requirements = [
     'Flask>=0.10.1',
     'six>=1.7.2',
-    'invenio-base>=0.2.1',
-    'invenio-ext>=0.2.1',
-    'invenio-utils>=0.1.1',
+    'invenio-base>=0.3.1,<1.0.0',
+    'invenio-ext>=0.3.1,<1.0.0',
+    'invenio-utils>=0.2.0,<1.0.0',
+    'rdflib>=4.2.1',
 ]
 
 test_requirements = [
     'unittest2>=1.1.0',
-    'Flask-Testing>=0.4.2',
-    'pytest>=2.7.0',
-    'pytest-cov>=1.8.0',
-    'pytest-pep8>=1.0.6',
-    'coverage>=3.7.1',
+    'Flask_Testing>=0.4.2',
+    'pytest>=2.8.0',
+    'pytest_cov>=2.1.0',
+    'pytest_pep8>=1.0.6',
+    'coverage>=4.0.0',
+    'invenio-testing>=0.1.0',
 ]
 
 
@@ -79,9 +81,6 @@ class PyTest(TestCommand):
         """Run tests."""
         # import here, cause outside the eggs aren't loaded
         import pytest
-        import _pytest.config
-        pm = _pytest.config.get_plugin_manager()
-        pm.consider_setuptools_entrypoints()
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 

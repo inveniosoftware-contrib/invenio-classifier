@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013, 2014, 2015 CERN.
+# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -197,9 +197,9 @@ def build_marc(recid, single_keywords, composite_keywords,
 
 
 def _output_marc(output_complete, categories,
-                 kw_field=cfg["CLASSIFIER_RECORD_KEYWORD_FIELD"],
-                 auth_field=cfg["CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"],
-                 acro_field=cfg["CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"],
+                 kw_field=None,
+                 auth_field=None,
+                 acro_field=None,
                  provenience='Classifier'):
     """Output the keywords in the MARCXML format.
 
@@ -215,6 +215,15 @@ def _output_marc(output_complete, categories,
         assigned the contents of the field
     :return: string, formatted MARC
     """
+    if kw_field is None:
+        kw_field = cfg["CLASSIFIER_RECORD_KEYWORD_FIELD"]
+
+    if auth_field is None:
+        auth_field = cfg["CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"]
+
+    if acro_field is None:
+        acro_field = cfg["CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"]
+
     kw_template = ('<datafield tag="%s" ind1="%s" ind2="%s">\n'
                    '    <subfield code="2">%s</subfield>\n'
                    '    <subfield code="a">%s</subfield>\n'
@@ -249,7 +258,9 @@ def _output_marc(output_complete, categories,
 
 def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
                      acronyms=None, spires=False, only_core_tags=False,
-                     limit=cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]):
+                     limit=None):
+    if limit is None:
+        limit = cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]
 
     if limit:
         resized_skw = skw_matches[0:limit]

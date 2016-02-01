@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 CERN.
+# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -46,6 +46,8 @@ from flask import current_app
 from invenio_base.globals import cfg
 from invenio_utils.url import make_invenio_opener
 
+from werkzeug.local import LocalProxy
+
 import rdflib
 
 from six import iteritems
@@ -54,7 +56,7 @@ from six.moves import cPickle
 from .errors import TaxonomyError
 from .registry import taxonomies
 
-urlopen = make_invenio_opener('classifier').open
+urlopen = LocalProxy(lambda: make_invenio_opener('classifier').open)
 
 _contains_digit = re.compile("\d")
 _starts_with_non = re.compile("(?i)^non[a-z]")

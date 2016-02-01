@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 CERN.
+# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -34,11 +34,6 @@ from flask import current_app
 from invenio_base.globals import cfg
 
 from .errors import OntologyError
-
-
-_MAXIMUM_SEPARATOR_LENGTH = max([len(_separator)
-                                 for _separator in
-                                 cfg["CLASSIFIER_VALID_SEPARATORS"]])
 
 
 def get_single_keywords(skw_db, fulltext):
@@ -306,6 +301,9 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
 def _get_ckw_span(fulltext, spans):
     """Return the span of the composite keyword if it is valid."""
+    _MAXIMUM_SEPARATOR_LENGTH = max([len(_separator)
+                                     for _separator in
+                                     cfg["CLASSIFIER_VALID_SEPARATORS"]])
     if spans[0] < spans[1]:
         words = (spans[0], spans[1])
         dist = spans[1][0] - spans[0][1]

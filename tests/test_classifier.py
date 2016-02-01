@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2010, 2011, 2013, 2014, 2015 CERN.
+# Copyright (C) 2010, 2011, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -29,10 +29,8 @@ from flask_registry import (
     PkgResourcesDirDiscoveryRegistry,
     RegistryProxy,
 )
-from invenio.testsuite import (
+from invenio_testing import (
     InvenioTestCase,
-    make_test_suite,
-    run_test_suite,
 )
 
 
@@ -51,13 +49,6 @@ def _get_test_taxonomies():
 class ClassifierTestCase(InvenioTestCase):
 
     """Basic test class used for classifier tests."""
-
-    @property
-    def config(self):
-        from invenio_base.config import PACKAGES
-        default_config = super(ClassifierTestCase, self).config
-        default_config["PACKAGES"] = PACKAGES + ["invenio_classifier"]
-        return default_config
 
     def setUp(self):
         """Initialize stuff."""
@@ -251,10 +242,3 @@ class ClassifierTest(ClassifierTestCase):
         cache = reader._get_cache_path(name)
         os.remove(taxonomy_path)
         os.remove(cache)
-
-
-TEST_SUITE = make_test_suite(ClassifierTest)
-
-
-if __name__ == '__main__':
-    run_test_suite(TEST_SUITE)

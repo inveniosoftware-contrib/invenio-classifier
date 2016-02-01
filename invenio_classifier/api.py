@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014, 2015 CERN.
+# Copyright (C) 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -27,7 +27,6 @@ import re
 from flask import current_app
 
 from invenio_base.globals import cfg
-from invenio_utils.filedownload import download_url
 
 from .engine import (
     clean_before_output,
@@ -50,11 +49,14 @@ from .reader import (
 
 def output_keywords_for_sources(
         input_sources, taxonomy_name, output_mode="text",
-        output_limit=cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER'], spires=False,
+        output_limit=None, spires=False,
         match_mode="full", no_cache=False, with_author_keywords=False,
         rebuild_cache=False, only_core_tags=False, extract_acronyms=False,
         **kwargs):
     """Output the keywords for each source in sources."""
+    if output_limit is None:
+        output_limit = cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+
     # Inner function which does the job and it would be too much work to
     # refactor the call (and it must be outside the loop, before it did
     # not process multiple files)
@@ -108,6 +110,7 @@ def output_keywords_for_sources(
                 process_lines()
         else:
             # Treat as a URL.
+            from invenio_utils.filedownload import download_url
             local_file = download_url(entry)
             text_lines, dummy = get_plaintext_document_body(local_file)
             if text_lines:
@@ -117,13 +120,16 @@ def output_keywords_for_sources(
 
 def get_keywords_from_local_file(
         local_file, taxonomy_name, output_mode="text",
-        output_limit=cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"], spires=False,
+        output_limit=None, spires=False,
         match_mode="full", no_cache=False, with_author_keywords=False,
         rebuild_cache=False, only_core_tags=False, extract_acronyms=False):
     """Output keywords reading a local file.
 
     Arguments and output are the same as for :see: get_keywords_from_text().
     """
+    if output_limit is None:
+        output_limit = cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+
     current_app.logger.info(
         "Analyzing keywords for local file %s." % local_file)
     text_lines = text_lines_from_local_file(local_file)
@@ -142,8 +148,7 @@ def get_keywords_from_local_file(
 
 
 def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
-                           output_limit=cfg[
-                               "CLASSIFIER_DEFAULT_OUTPUT_NUMBER"],
+                           output_limit=None,
                            spires=False, match_mode="full", no_cache=False,
                            with_author_keywords=False, rebuild_cache=False,
                            only_core_tags=False, extract_acronyms=False):
@@ -165,6 +170,9 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
         (single_keywords, composite_keywords, author_keywords, acronyms)
         for other output modes it returns formatted string
     """
+    if output_limit is None:
+        output_limit = cfg['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+
     cache = get_cache(taxonomy_name)
     if not cache:
         set_cache(taxonomy_name,
