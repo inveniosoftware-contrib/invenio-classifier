@@ -26,19 +26,16 @@ text and keywords are outputted in different formats (text, MARCXML or HTML).
 from __future__ import print_function
 
 import os
+from functools import cmp_to_key
 
-from invenio_base.globals import cfg
-from invenio_utils.text import encode_for_xml
-
+from flask import current_app
 from six import iteritems
 
 from .acronymer import get_acronyms
-from .keyworder import (
-    get_author_keywords,
-    get_composite_keywords,
-    get_single_keywords,
-)
+from .keyworder import get_author_keywords, get_composite_keywords, \
+    get_single_keywords
 from .reader import KeywordToken
+from .utils import encode_for_xml
 
 
 def extract_single_keywords(skw_db, fulltext):
@@ -216,13 +213,17 @@ def _output_marc(output_complete, categories,
     :return: string, formatted MARC
     """
     if kw_field is None:
-        kw_field = cfg["CLASSIFIER_RECORD_KEYWORD_FIELD"]
+        kw_field = current_app.config["CLASSIFIER_RECORD_KEYWORD_FIELD"]
 
     if auth_field is None:
-        auth_field = cfg["CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"]
+        auth_field = current_app.config[
+            "CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"
+        ]
 
     if acro_field is None:
-        acro_field = cfg["CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"]
+        acro_field = current_app.config[
+            "CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"
+        ]
 
     kw_template = ('<datafield tag="%s" ind1="%s" ind2="%s">\n'
                    '    <subfield code="2">%s</subfield>\n'
@@ -260,7 +261,7 @@ def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
                      acronyms=None, spires=False, only_core_tags=False,
                      limit=None):
     if limit is None:
-        limit = cfg["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]
+        limit = current_app.config["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]
 
     if limit:
         resized_skw = skw_matches[0:limit]
@@ -503,18 +504,21 @@ def _skw_matches_comparator(kw0, kw1):
     First by the number of their spans (ie. how many times they were found),
     if it is equal it compares them by lenghts of their labels.
     """
-    list_comparison = cmp(len(kw1[1][0]), len(kw0[1][0]))
+    def compare(a, b):
+        return (a > b) - (a < b)
+
+    list_comparison = compare(len(kw1[1][0]), len(kw0[1][0]))
     if list_comparison:
         return list_comparison
 
     if kw0[0].isComposite() and kw1[0].isComposite():
         component_avg0 = sum(kw0[1][1]) / len(kw0[1][1])
         component_avg1 = sum(kw1[1][1]) / len(kw1[1][1])
-        component_comparison = cmp(component_avg1, component_avg0)
+        component_comparison = compare(component_avg1, component_avg0)
         if component_comparison:
             return component_comparison
 
-    return cmp(len(str(kw1[0])), len(str(kw0[0])))
+    return compare(len(str(kw1[0])), len(str(kw0[0])))
 
 
 def _kw(keywords):
@@ -528,7 +532,7 @@ def _kw(keywords):
 def _sort_kw_matches(skw_matches, limit=0):
     """Return a resized version of keywords to the given length."""
     sorted_keywords = list(skw_matches.items())
-    sorted_keywords.sort(_skw_matches_comparator)
+    sorted(sorted_keywords, key=cmp_to_key(_skw_matches_comparator))
     return limit and sorted_keywords[:limit] or sorted_keywords
 
 
@@ -543,7 +547,9 @@ def get_partial_text(fulltext):
 
     partial_text = [
         fulltext[_get_index(start):_get_index(end)]
-        for start, end in cfg["CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"]
+        for start, end in current_app.config[
+            "CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"
+        ]
     ]
 
     return "\n".join(partial_text)

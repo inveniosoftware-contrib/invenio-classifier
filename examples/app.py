@@ -22,21 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio module for record classification.
 
-You can use the command line tool ${INVENIO_WEB_INSTANCE} classifier --help
-or access the API directly.
+"""Minimal Flask application example for development.
+
+Run example development server:
+
+.. code-block:: console
+
+   $ cd examples
+   $ flask -a app.py --debug run
 """
 
 from __future__ import absolute_import, print_function
 
-from .api import get_keywords_from_text, get_keywords_from_local_file
-from .ext import InvenioClassifier
-from .version import __version__
+from flask import Flask
 
-__all__ = (
-    '__version__',
-    'InvenioClassifier',
-    'get_keywords_from_text',
-    'get_keywords_from_local_file',
-)
+from invenio_classifier import InvenioClassifier
+
+# Create Flask application
+app = Flask(__name__)
+InvenioClassifier(app)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015 CERN.
+# Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -22,6 +22,8 @@
 This module also provides the utility 'is_pdf' that uses GNU file in order to
 determine if a local file is a PDF file.
 """
+
+from __future__ import unicode_literals
 
 import os
 import re
@@ -104,20 +106,24 @@ def executable_exists(executable):
 
 
 def get_plaintext_document_body(fpath, keep_layout=False):
-    """Given a file-path to a full-text, return a list of unicode strings
-       whereby each string is a line of the fulltext.
-       In the case of a plain-text document, this simply means reading the
-       contents in from the file. In the case of a PDF/PostScript however,
-       this means converting the document to plaintext.
-       @param fpath: (string) - the path to the fulltext file
-       @return: (list) of strings - each string being a line in the document.
+    """Given a file-path to a full-text, return a list of unicode strings.
+
+    Each string is a line of the fulltext.
+    In the case of a plain-text document, this simply means reading the
+    contents in from the file. In the case of a PDF/PostScript however,
+    this means converting the document to plaintext.
+
+    :param fpath: (string) - the path to the fulltext file
+    :return: (list) of strings - each string being a line in the document.
     """
     textbody = []
     status = 0
     if os.access(fpath, os.F_OK | os.R_OK):
         # filepath OK - attempt to extract references:
         # get file type:
-        cmd_pdftotext = [current_app.config.get("CFG_PATH_GFILE"), fpath]
+        cmd_pdftotext = [
+            current_app.config.get("CLASSIFIER_PATH_GFILE"), fpath
+        ]
         pipe_pdftotext = subprocess.Popen(cmd_pdftotext,
                                           stdout=subprocess.PIPE)
         res_gfile = pipe_pdftotext.stdout.read()
@@ -144,12 +150,13 @@ def get_plaintext_document_body(fpath, keep_layout=False):
 
 
 def convert_PDF_to_plaintext(fpath, keep_layout=False):
-    """Convert PDF to txt using pdftotext
+    """Convert PDF to txt using pdftotext.
 
     Take the path to a PDF file and run pdftotext for this file, capturing
     the output.
-    @param fpath: (string) path to the PDF file
-    @return: (list) of unicode strings (contents of the PDF file translated
+
+    :param fpath: (string) path to the PDF file
+    :return: (list) of unicode strings (contents of the PDF file translated
     into plaintext; each string is a line in the document.)
     """
     if keep_layout:
@@ -162,9 +169,9 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
     # If this pattern is matched, we want to split the page-break into
     # its own line because we rely upon this for trying to strip headers
     # and footers, and for some other pattern matching.
-    p_break_in_line = re.compile(ur'^\s*\f(.+)$', re.UNICODE)
+    p_break_in_line = re.compile(r'^\s*\f(.+)$', re.UNICODE)
     # build pdftotext command:
-    cmd_pdftotext = [current_app.config.get("CFG_PATH_PDFTOTEXT"),
+    cmd_pdftotext = [current_app.config.get("CLASSIFIER_PATH_PDFTOTEXT"),
                      layout_option, "-q",
                      "-enc", "UTF-8", fpath, "-"]
     current_app.logger.debug("* %s" % ' '.join(cmd_pdftotext))
@@ -199,14 +206,18 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
 
 
 def pdftotext_conversion_is_bad(txtlines):
-    """Sometimes pdftotext performs a bad conversion which consists of many
-       spaces and garbage characters.
-       This method takes a list of strings obtained from a pdftotext conversion
-       and examines them to see if they are likely to be the result of a bad
-       conversion.
-       @param txtlines: (list) of unicode strings obtained from pdftotext
-        conversion.
-       @return: (integer) - 1 if bad conversion; 0 if good conversion.
+    """Check if conversion after pdftotext is bad.
+
+    Sometimes pdftotext performs a bad conversion which consists of many
+    spaces and garbage characters.
+
+    This method takes a list of strings obtained from a pdftotext conversion
+    and examines them to see if they are likely to be the result of a bad
+    conversion.
+
+    :param txtlines: (list) of unicode strings obtained from pdftotext
+    conversion.
+    :return: (integer) - 1 if bad conversion; 0 if good conversion.
     """
     # Numbers of 'words' and 'whitespaces' found in document:
     numWords = numSpaces = 0

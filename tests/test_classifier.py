@@ -19,70 +19,24 @@
 
 """Test suite for classifier module."""
 
+from __future__ import absolute_import, print_function
+
 import os
 import shutil
 import stat
 import time
 
-from flask_registry import (
-    ImportPathRegistry,
-    PkgResourcesDirDiscoveryRegistry,
-    RegistryProxy,
-)
-from invenio_testing import (
-    InvenioTestCase,
-)
+import pytest
+
+from invenio_classifier import get_keywords_from_text
 
 
-def _get_test_taxonomies():
-    TEST_PACKAGES = [
-        'invenio_classifier',
-        'demo_package'
-    ]
-
-    test_registry = RegistryProxy('test_registry', ImportPathRegistry,
-                                  initial=TEST_PACKAGES)
-    return PkgResourcesDirDiscoveryRegistry(
-        'taxonomies', registry_namespace=test_registry)
-
-
-class ClassifierTestCase(InvenioTestCase):
-
-    """Basic test class used for classifier tests."""
-
-    def setUp(self):
-        """Initialize stuff."""
-        self.taxonomy_name = "test"
-        self.app.extensions['registry']['classifierext.taxonomies'] = \
-            _get_test_taxonomies()
-        self.sample_text = """
-        We study the three-dimensional effective action obtained by reducing
-        eleven-dimensional supergravity with higher-derivative terms on a background
-        solution including a warp-factor, an eight-dimensional compact manifold, and fluxes.
-        The dynamical fields are K\"ahler deformations and vectors from the M-theory three-form.
-        We show that the potential is only induced by fluxes and the naive
-        contributions obtained from higher-curvature terms on a Calabi-Yau
-        background aberration once the back-reaction to the full solution is taken
-        into account. For the resulting three-dimensional action we analyse
-        the K\"ahler potential and complex coordinates and show compatibility
-        with N=2 supersymmetry. We argue that the higher-order result is also
-        compatible with a no-scale aberration. We find that the complex
-        coordinates should be formulated as divisor integrals for which a
-        non-trivial interplay between the warp-factor terms and the
-        higher-curvature terms allow a derivation of the moduli space metric.
-        This leads us to discuss higher-derivative corrections to the M5-brane
-        action.
-        """
-
-
-class ClassifierTest(ClassifierTestCase):
-
-    def test_keywords(self):
-        """Test extraction"""
-        from invenio_classifier.api import get_keywords_from_text
+def test_keywords(app, demo_taxonomy, demo_text):
+    """Test version import."""
+    with app.app_context():
         out = get_keywords_from_text(
-            text_lines=[self.sample_text],
-            taxonomy_name=self.taxonomy_name,
+            text_lines=[demo_text],
+            taxonomy_name=demo_taxonomy,
             output_mode="dict"
         )
         output = out.get("complete_output")
@@ -96,13 +50,20 @@ class ClassifierTest(ClassifierTestCase):
         assert len(core_keywords) == 2
         assert "supersymmetry" in core_keywords
 
-    def test_rebuild_cache(self):
-        """classifier - test rebuilding cache."""
-        from invenio_classifier import reader
-        info = reader._get_ontology(self.taxonomy_name)
 
-        self.assertTrue(info[0])
-        cache = reader._get_cache_path(info[0])
+def test_rebuild_cache(app, demo_taxonomy):
+    """classifier - test rebuilding cache."""
+    from invenio_classifier.reader import (
+        _get_ontology,
+        _get_cache_path,
+        get_regular_expressions
+    )
+
+    with app.app_context():
+        info = _get_ontology(demo_taxonomy)
+
+        assert info[0]
+        cache = _get_cache_path(info[0])
 
         if os.path.exists(cache):
             ctime = os.stat(cache)[stat.ST_CTIME]
@@ -110,135 +71,132 @@ class ClassifierTest(ClassifierTestCase):
             ctime = -1
 
         time.sleep(0.5)  # sleep a bit for timing issues
-        rex = reader.get_regular_expressions(
-            self.taxonomy_name, rebuild=True)
-        self.assertTrue(os.path.exists(cache))
+        rex = get_regular_expressions(
+            demo_taxonomy, rebuild=True)
+
+        assert os.path.exists(cache)
+
         ntime = os.stat(cache)[stat.ST_CTIME]
-        self.assertTrue((ntime > ctime))
+        assert ntime > ctime
 
-        self.assertEqual(len(rex[0]) + len(rex[1]), 63)
+        assert len(rex[0]) + len(rex[1]) == 63
 
-    def test_cache_accessibility(self):
-        """classifier - test cache accessibility/writability"""
-        from flask import current_app
-        from invenio_classifier.registry import taxonomies
-        from invenio_classifier import reader
-        from invenio_classifier.errors import TaxonomyError
+
+def test_cache_accessibility(app, demo_taxonomy):
+    """classifier - test cache accessibility/writability"""
+    from invenio_classifier.reader import (
+        _get_ontology, get_regular_expressions, _get_cache_path
+    )
+    from invenio_classifier.errors import TaxonomyError
+
+    assert os.path.exists(demo_taxonomy)
+
+    with app.app_context():
         # we will do tests with a copy of test taxonomy, in case anything goes
         # wrong...
-        orig_name, orig_taxonomy_path, orig_taxonomy_url = reader._get_ontology(
-            self.taxonomy_name)
+        orig_name, orig_taxonomy_path, orig_taxonomy_url = _get_ontology(
+            demo_taxonomy)
 
-        taxonomy_name = self.taxonomy_name + '.copy'
-        taxonomy_path = os.path.join(
-            current_app.config['CFG_TMPDIR'], taxonomy_name + '.rdf')
+        demo_taxonomy = demo_taxonomy + '.copy.rdf'
 
-        shutil.copy(orig_taxonomy_path, taxonomy_path)
-        taxonomies[taxonomy_name] = taxonomy_path
-        assert(os.path.exists(taxonomy_path))
+        shutil.copy(orig_taxonomy_path, demo_taxonomy)
 
-        name, taxonomy_path, taxonomy_url = reader._get_ontology(
-            taxonomy_name)
-        cache = reader._get_cache_path(
-            os.path.basename(taxonomy_path))
-
-        assert name
+        dummy_name, demo_taxonomy, dummy_url = _get_ontology(demo_taxonomy)
+        cache = _get_cache_path(demo_taxonomy)
 
         if os.path.exists(cache):
             os.remove(cache)
 
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=True, no_cache=False)
+        get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
 
-        assert(os.path.exists(cache))
+        assert os.path.exists(cache)
 
         # set cache unreadable
         os.chmod(cache, 000)
 
-        self.assertRaises(
-            TaxonomyError,
-            reader.get_regular_expressions,
-            taxonomy_name, rebuild=False, no_cache=False
-        )
+        with pytest.raises(TaxonomyError):
+            get_regular_expressions(
+                demo_taxonomy, rebuild=False, no_cache=False
+            )
 
         # set cache unreadable and test writing
         os.chmod(cache, 000)
 
-        self.assertRaises(
-            TaxonomyError,
-            reader.get_regular_expressions,
-            taxonomy_name, rebuild=True, no_cache=False
-        )
+        with pytest.raises(TaxonomyError):
+            get_regular_expressions(
+                demo_taxonomy, rebuild=True, no_cache=False
+            )
 
         # set cache readable and test writing
         os.chmod(cache, 600)
 
-        self.assertRaises(
-            TaxonomyError,
-            reader.get_regular_expressions,
-            taxonomy_name, rebuild=True, no_cache=False
-        )
+        with pytest.raises(TaxonomyError):
+            get_regular_expressions(
+                demo_taxonomy, rebuild=True, no_cache=False
+            )
 
         # set cache writable only
         os.chmod(cache, 200)
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=True, no_cache=False)
 
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=False, no_cache=False)
+        get_regular_expressions(
+            demo_taxonomy, rebuild=True, no_cache=False)
+
+        get_regular_expressions(
+            demo_taxonomy, rebuild=False, no_cache=False)
 
         # set cache readable/writable but corrupted (must rebuild itself)
         os.chmod(cache, 600)
         os.remove(cache)
         open(cache, 'w').close()
 
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=False, no_cache=False)
+        get_regular_expressions(
+            demo_taxonomy, rebuild=False, no_cache=False)
 
         # set cache readable/writable but corrupted (must rebuild itself)
         open(cache, 'w').close()
         try:
-            os.rename(taxonomy_path, taxonomy_path + 'x')
-            open(taxonomy_path, 'w').close()
-            self.assertRaises(
-                TaxonomyError,
-                reader.get_regular_expressions,
-                taxonomy_name, rebuild=False, no_cache=False
-            )
+            os.rename(demo_taxonomy, demo_taxonomy + 'x')
+            open(demo_taxonomy, 'w').close()
+            with pytest.raises(TaxonomyError):
+                get_regular_expressions(
+                    demo_taxonomy,
+                    rebuild=False,
+                    no_cache=False
+                )
         finally:
-            os.rename(taxonomy_path + 'x', taxonomy_path)
+            os.rename(demo_taxonomy + 'x', demo_taxonomy)
 
         # make cache ok, but corrupt source
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=True, no_cache=False)
+        get_regular_expressions(
+            demo_taxonomy, rebuild=True, no_cache=False)
 
         try:
-            os.rename(taxonomy_path, taxonomy_path + 'x')
-            open(taxonomy_path, 'w').close()
+            os.rename(demo_taxonomy, demo_taxonomy + 'x')
+            open(demo_taxonomy, 'w').close()
             time.sleep(.1)
             # touch the taxonomy to be older
             os.utime(cache, (time.time() + 100, time.time() + 100))
-            reader.get_regular_expressions(
-                taxonomy_name, rebuild=False, no_cache=False)
+            get_regular_expressions(
+                demo_taxonomy, rebuild=False, no_cache=False)
         finally:
-            os.rename(taxonomy_path + 'x', taxonomy_path)
+            os.rename(demo_taxonomy + 'x', demo_taxonomy)
 
         # make cache ok (but old), and corrupt source
-        reader.get_regular_expressions(
-            taxonomy_name, rebuild=True, no_cache=False)
+        get_regular_expressions(
+            demo_taxonomy, rebuild=True, no_cache=False)
         try:
-            os.rename(taxonomy_path, taxonomy_path + 'x')
-            open(taxonomy_path, 'w').close()
-            self.assertRaises(
-                TaxonomyError,
-                reader.get_regular_expressions,
-                taxonomy_name, rebuild=False, no_cache=False
-            )
+            os.rename(demo_taxonomy, demo_taxonomy + 'x')
+            open(demo_taxonomy, 'w').close()
+            with pytest.raises(TaxonomyError):
+                get_regular_expressions(
+                    demo_taxonomy,
+                    rebuild=False,
+                    no_cache=False
+                )
         finally:
-            os.rename(taxonomy_path + 'x', taxonomy_path)
+            os.rename(demo_taxonomy + 'x', demo_taxonomy)
 
-        name, taxonomy_path, taxonomy_url = reader._get_ontology(
-            taxonomy_name)
-        cache = reader._get_cache_path(name)
-        os.remove(taxonomy_path)
+        name, demo_taxonomy, taxonomy_url = _get_ontology(demo_taxonomy)
+        cache = _get_cache_path(name)
+        os.remove(demo_taxonomy)
         os.remove(cache)

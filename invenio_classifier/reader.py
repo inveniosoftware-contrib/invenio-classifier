@@ -34,29 +34,19 @@ import os
 import re
 import sys
 import tempfile
-import thread
 import time
-import urllib2
 import xml.sax
 
 from datetime import datetime, timedelta
 
+import rdflib
+import requests
 from flask import current_app
-
-from invenio_base.globals import cfg
-from invenio_utils.url import make_invenio_opener
-
+from six import iteritems, text_type
+from six.moves import cPickle, urllib_error
 from werkzeug.local import LocalProxy
 
-import rdflib
-
-from six import iteritems
-from six.moves import cPickle
-
 from .errors import TaxonomyError
-from .registry import taxonomies
-
-urlopen = LocalProxy(lambda: make_invenio_opener('classifier').open)
 
 _contains_digit = re.compile("\d")
 _starts_with_non = re.compile("(?i)^non[a-z]")
@@ -67,7 +57,7 @@ _CACHE = {}
 
 
 def get_cache(taxonomy_id):
-    """Return thread-safe cache for the given taxonomy id.
+    """Return cache for the given taxonomy id.
 
     :param taxonomy_id: identifier of the taxonomy
     :type taxonomy_id: str
@@ -103,13 +93,8 @@ def get_cache(taxonomy_id):
 
 
 def set_cache(taxonomy_id, contents):
-    """Update cache in a thread-safe manner."""
-    lock = thread.allocate_lock()
-    lock.acquire()
-    try:
-        _CACHE[taxonomy_id] = (time.time(), contents)
-    finally:
-        lock.release()
+    """Update cache for taxonomy."""
+    _CACHE[taxonomy_id] = (time.time(), contents)
 
 
 def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
@@ -193,10 +178,12 @@ def _get_remote_ontology(onto_url, time_difference=None):
     if onto_url is None:
         return False
 
-    dl_dir = ((cfg["CFG_CACHEDIR"] or tempfile.gettempdir()) + os.sep +
-              "classifier" + os.sep)
+    dl_dir = os.path.join(
+        current_app.config["CLASSIFIER_WORKDIR"] or tempfile.gettempdir(),
+        "classifier"
+    )
     if not os.path.exists(dl_dir):
-        os.mkdir(dl_dir)
+        os.makedirs(dl_dir)
 
     local_file = dl_dir + os.path.basename(onto_url)
     remote_modif_time = _get_last_modification_date(onto_url)
@@ -229,7 +216,7 @@ def _get_remote_ontology(onto_url, time_difference=None):
 def _get_ontology(ontology):
     """Return the (name, path, url) to the short ontology name.
 
-    :param ontology: name of the ontology or path to the file or url.
+    :param ontology: path to the file or url.
     """
     onto_name = onto_path = onto_url = None
 
@@ -255,40 +242,27 @@ def _get_ontology(ontology):
     return (onto_name, onto_path, onto_url)
 
 
-def _discover_ontology(ontology_name):
-    """Look for the file in a known places.
+def _discover_ontology(ontology_path):
+    """Look for the file in known places.
 
-    :param ontology: name or path name or url
+    :param ontology: path name or url
     :type ontology: str
 
     :return: absolute path of a file if found, or None
     """
-    last_part = os.path.split(os.path.abspath(ontology_name))[1]
-    if last_part in taxonomies:
-        return taxonomies.get(last_part)
-    elif last_part + ".rdf" in taxonomies:
-        return taxonomies.get(last_part + ".rdf")
-    else:
-        current_app.logger.debug(
-            "No taxonomy with pattern '%s' found" % ontology_name)
-
-    # LEGACY
+    last_part = os.path.split(os.path.abspath(ontology_path))[1]
     possible_patterns = [last_part, last_part.lower()]
     if not last_part.endswith('.rdf'):
         possible_patterns.append(last_part + '.rdf')
-    places = [cfg["CFG_CACHEDIR"],
-              cfg["CFG_ETCDIR"],
-              os.path.join(cfg["CFG_CACHEDIR"], "classifier"),
-              os.path.join(cfg["CFG_ETCDIR"], "classifier"),
+    places = [os.path.join(current_app.instance_path, "classifier"),
+              current_app.config['CLASSIFIER_WORKDIR'],
               os.path.abspath('.'),
-              os.path.join(os.path.dirname(__file__), "classifier"),
-              cfg["CFG_WEBDIR"]]
+              os.path.join(os.path.dirname(__file__), "classifier")]
 
     current_app.logger.debug(
         "Searching for taxonomy using string: %s" % last_part)
     current_app.logger.debug("Possible patterns: %s" % possible_patterns)
     for path in places:
-
         try:
             if os.path.isdir(path):
                 current_app.logger.debug("Listing: %s" % path)
@@ -311,17 +285,16 @@ def _discover_ontology(ontology_name):
                                         filepath
                                     )
                                 )
-        except OSError, os_error_msg:
+        except OSError as os_error_msg:
             current_app.logger.exception(
                 'OS Error when listing path "{0}": {1}'.format(
                     str(path), str(os_error_msg))
             )
     current_app.logger.debug(
-        "No taxonomy with pattern '{0}' found".format(ontology_name))
+        "No taxonomy with pattern '{0}' found".format(ontology_path))
 
 
-class KeywordToken:
-
+class KeywordToken(object):
     """KeywordToken is a class used for the extracted keywords.
 
     It can be initialized with values from RDF store or from
@@ -404,7 +377,7 @@ class KeywordToken:
             hidden_labels = []
             try:
                 for label in store.objects(subject, namespace["hiddenLabel"]):
-                    hidden_labels.append(unicode(label))
+                    hidden_labels.append(text_type(label))
             except TypeError:
                 pass
 
@@ -518,6 +491,28 @@ class KeywordToken:
         """
         return self.__hash
 
+    def __getstate__(self):
+        """Get state."""
+        state = self.__dict__
+        return {
+            "regex": [regex.pattern for regex in state['regex']],
+            "compositeof": [text_type(s) for s in state['compositeof']],
+            "fieldcodes": state['fieldcodes'],
+            "concept": state['concept'],
+            "core": state['core'],
+            "spires": state['spires'],
+            "_KeywordToken__hash": state['_KeywordToken__hash'],
+            "type": state['type'],
+            "nostandalone": state['nostandalone'],
+            "_composite": state['_composite'],
+            "id": state['id'],
+        }
+
+    def __setstate__(self, state):
+        """Get state."""
+        state['regex'] = [re.compile(regex) for regex in state['regex']]
+        self.__dict__.update(state)
+
     def __cmp__(self, other):
         """Compare objects using _hash."""
         if self.__hash < other.__hash__():
@@ -584,7 +579,7 @@ def _build_cache(source_file, skip_cache=False):
             "Building RDFLib's conjunctive graph from: %s" % source_file)
         try:
             store.parse(source_file)
-        except urllib2.URLError:
+        except urllib_error.URLError:
             if source_file[0] == '/':
                 store.parse("file://" + source_file)
             else:
@@ -745,21 +740,21 @@ def _convert_word(word):
         return _capitalize_first_letter(out)
 
     # A few invariable words.
-    if word in cfg["CLASSIFIER_INVARIABLE_WORDS"]:
+    if word in current_app.config["CLASSIFIER_INVARIABLE_WORDS"]:
         return _capitalize_first_letter(word)
 
     # Some exceptions that would not produce good results with the set of
     # general_regular_expressions.
-    regexes = cfg["CLASSIFIER_EXCEPTIONS"]
+    regexes = current_app.config["CLASSIFIER_EXCEPTIONS"]
     if word in regexes:
         return _capitalize_first_letter(regexes[word])
 
-    regexes = cfg["CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS"]
+    regexes = current_app.config["CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS"]
     for regex in regexes:
         if regex.search(word) is not None:
             return _capitalize_first_letter(word)
 
-    regexes = cfg["CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS"]
+    regexes = current_app.config["CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS"]
     for regex, replacement in regexes:
         stemmed = regex.sub(replacement, word)
         if stemmed != word:
@@ -843,7 +838,7 @@ def _get_cache_path(source_file):
     """
     local_name = os.path.basename(source_file)
     cache_name = local_name + ".db"
-    cache_dir = os.path.join(cfg["CFG_CACHEDIR"], "classifier")
+    cache_dir = os.path.join(current_app.instance_path, "classifier")
 
     if not os.path.isdir(cache_dir):
         os.makedirs(cache_dir)
@@ -853,24 +848,23 @@ def _get_cache_path(source_file):
 
 def _get_last_modification_date(url):
     """Get the last modification date of the ontology."""
-    request = urllib2.Request(url)
-    request.get_method = lambda: "HEAD"
-    http_file = urlopen(request)
-    date_string = http_file.headers["last-modified"]
+    request = requests.head(url)
+    date_string = request.headers["last-modified"]
     parsed = time.strptime(date_string, "%a, %d %b %Y %H:%M:%S %Z")
     return datetime(*(parsed)[0:6])
 
 
 def _download_ontology(url, local_file):
-    """Download the ontology and stores it in CFG_CACHEDIR."""
+    """Download the ontology and stores it in CLASSIFIER_WORKDIR."""
     current_app.logger.debug(
         "Copying remote ontology '%s' to file '%s'." % (url, local_file)
     )
     try:
-        url_desc = urlopen(url)
-        file_desc = open(local_file, 'w')
-        file_desc.write(url_desc.read())
-        file_desc.close()
+        request = requests.get(url, stream=True)
+        if request.status_code == 200:
+            with open(local_file, 'wb') as f:
+                for chunk in request.iter_content(chunk_size):
+                    f.write(chunk)
     except IOError as e:
         current_app.logger.exception(e)
         return False
@@ -890,12 +884,13 @@ def _get_searchable_regex(basic=None, hidden=None):
         if _is_regex(hidden_label):
             hidden_regex_dict[hidden_label] = \
                 re.compile(
-                    cfg["CLASSIFIER_WORD_WRAP"] % hidden_label[1:-1]
+                    current_app.config["CLASSIFIER_WORD_WRAP"]
+                    % hidden_label[1:-1]
             )
         else:
             pattern = _get_regex_pattern(hidden_label)
             hidden_regex_dict[hidden_label] = re.compile(
-                cfg["CLASSIFIER_WORD_WRAP"] % pattern
+                current_app.config["CLASSIFIER_WORD_WRAP"] % pattern
             )
 
     # We check if the basic label (preferred or alternative) is matched
@@ -905,13 +900,13 @@ def _get_searchable_regex(basic=None, hidden=None):
     for label in basic:
         pattern = _get_regex_pattern(label)
         regex_dict[label] = re.compile(
-            cfg["CLASSIFIER_WORD_WRAP"] % pattern
+            current_app.config["CLASSIFIER_WORD_WRAP"] % pattern
         )
 
     # Merge both dictionaries.
     regex_dict.update(hidden_regex_dict)
 
-    return regex_dict.values()
+    return list(regex_dict.values())
 
 
 def _get_regex_pattern(label):
@@ -933,12 +928,12 @@ def _get_regex_pattern(label):
                 # it as a symbol.
                 parts[index] = _convert_punctuation(
                     parts[index],
-                    cfg["CLASSIFIER_SYMBOLS"]
+                    current_app.config["CLASSIFIER_SYMBOLS"]
                 )
             else:
                 parts[index] = _convert_punctuation(
                     parts[index],
-                    cfg["CLASSIFIER_SEPARATORS"]
+                    current_app.config["CLASSIFIER_SEPARATORS"]
                 )
 
     return "".join(parts)

@@ -31,8 +31,6 @@ import time
 
 from flask import current_app
 
-from invenio_base.globals import cfg
-
 from .errors import OntologyError
 
 
@@ -252,7 +250,9 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
     timer_start = time.clock()
     out = {}
 
-    split_string = cfg["CLASSIFIER_AUTHOR_KW_START"].split(fulltext, 1)
+    split_string = current_app.config[
+        "CLASSIFIER_AUTHOR_KW_START"
+    ].split(fulltext, 1)
     if len(split_string) == 1:
         current_app.logger.info(
             "No keyword marker found when matching authors.")
@@ -260,12 +260,14 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
     kw_string = split_string[1]
 
-    for regex in cfg["CLASSIFIER_AUTHOR_KW_END"]:
+    for regex in current_app.config["CLASSIFIER_AUTHOR_KW_END"]:
         parts = regex.split(kw_string, 1)
         kw_string = parts[0]
 
     # We separate the keywords.
-    author_keywords = cfg["CLASSIFIER_AUTHOR_KW_SEPARATION"].split(kw_string)
+    author_keywords = current_app.config[
+        "CLASSIFIER_AUTHOR_KW_SEPARATION"
+    ].split(kw_string)
 
     current_app.logger.info(
         "Matching author keywords... %d keywords found in "
@@ -301,9 +303,11 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
 def _get_ckw_span(fulltext, spans):
     """Return the span of the composite keyword if it is valid."""
-    _MAXIMUM_SEPARATOR_LENGTH = max([len(_separator)
-                                     for _separator in
-                                     cfg["CLASSIFIER_VALID_SEPARATORS"]])
+    _MAXIMUM_SEPARATOR_LENGTH = max(
+        [len(_separator)
+         for _separator in
+         current_app.config["CLASSIFIER_VALID_SEPARATORS"]]
+    )
     if spans[0] < spans[1]:
         words = (spans[0], spans[1])
         dist = spans[1][0] - spans[0][1]
@@ -318,7 +322,8 @@ def _get_ckw_span(fulltext, spans):
     elif dist <= _MAXIMUM_SEPARATOR_LENGTH:
         separator = fulltext[words[0][1]:words[1][0] + 1]
         # Check the separator.
-        if separator.strip() in cfg["CLASSIFIER_VALID_SEPARATORS"]:
+        if separator.strip() in current_app.config[
+                "CLASSIFIER_VALID_SEPARATORS"]:
             return (min(words[0] + words[1]), max(words[0] + words[1]))
 
     # There is no inclusion.

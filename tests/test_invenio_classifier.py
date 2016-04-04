@@ -22,21 +22,33 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio module for record classification.
 
-You can use the command line tool ${INVENIO_WEB_INSTANCE} classifier --help
-or access the API directly.
-"""
+"""Module extension tests."""
 
 from __future__ import absolute_import, print_function
 
-from .api import get_keywords_from_text, get_keywords_from_local_file
-from .ext import InvenioClassifier
-from .version import __version__
+from flask import Flask
+from flask_cli import FlaskCLI
 
-__all__ = (
-    '__version__',
-    'InvenioClassifier',
-    'get_keywords_from_text',
-    'get_keywords_from_local_file',
-)
+from invenio_classifier import InvenioClassifier
+
+
+def test_version():
+    """Test version import."""
+    from invenio_classifier import __version__
+    assert __version__
+
+
+def test_init():
+    """Test extension initialization."""
+    app = Flask('testapp')
+    FlaskCLI(app)
+    ext = InvenioClassifier(app)
+    assert 'invenio-classifier' in app.extensions
+
+    app = Flask('testapp')
+    FlaskCLI(app)
+    ext = InvenioClassifier()
+    assert 'invenio-classifier' not in app.extensions
+    ext.init_app(app)
+    assert 'invenio-classifier' in app.extensions

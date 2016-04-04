@@ -43,10 +43,8 @@
 
 Invenio module for record classification.
 
-*This is an experimental development preview release.*
-
 * Free software: GPLv2 license
-* Documentation: https://invenio-classifier.readthedocs.org.
+* Documentation: https://pythonhosted.org/invenio-classifier
 
 
 Features
@@ -60,26 +58,25 @@ classification and retrieval of documents.
 Keyword extraction is simple
 ============================
 
- **Dependencies.** Classifier requires Python
-`RDFLib <http://rdflib.net/>`__ in order to process the RDF/SKOS
-taxonomy.
+.. note:: Classifier requires Python `RDFLib <http://rdflib.net/>`__ in order
+    to process the RDF/SKOS taxonomy.
 
 In order to extract relevant keywords from a document ``fulltext.pdf``
 based on a controlled vocabulary ``thesaurus.rdf``, you would run
 Classifier as follows:
 
-    ::
+.. code-block:: shell
 
-        $ inveniomanage classifier extract -k thesaurus.rdf -f fulltext.pdf
+    ${INVENIO_WEB_INSTANCE} classifier extract -k thesaurus.rdf -f fulltext.pdf
 
-Launching ``inveniomanage classifier --help`` shows the options available.
+Launching ``${INVENIO_WEB_INSTANCE} classifier --help`` shows the options available.
 
 As an example, running classifier on document
 `nucl-th/0204033 <http://cds.cern.ch/record/547024>`__ using the
 high-energy physics RDF/SKOS taxonomy (``HEP.rdf``) would yield the
 following results (based on the HEP taxonomy from October 10th 2008):
 
-::
+.. code-block:: text
 
     Input file: 0204033.pdf
 
@@ -131,7 +128,7 @@ is expressed in RDF/SKOS. It allows not only to list keywords but to
 specify relations between the keywords and alternative ways to represent
 the same keyword.
 
-    ::
+.. code-block:: xml
 
         <Concept rdf:about="http://cern.ch/thesauri/HEP.rdf#scalar">
          <composite rdf:resource="http://cern.ch/thesauri/HEP.rdf#Composite.fieldtheoryscalar"/>
@@ -153,6 +150,7 @@ the same keyword.
          <prefLabel xml:lang="en">field theory: scalar</prefLabel>
          <altLabel xml:lang="en">scalar field</altLabel>
         </Concept>
+
 
 In RDF/SKOS, every keyword is wrapped around a *concept* which
 encapsulates the full semantics and hierarchical status of a term -

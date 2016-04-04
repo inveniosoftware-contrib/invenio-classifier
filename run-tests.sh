@@ -22,21 +22,10 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio module for record classification.
 
-You can use the command line tool ${INVENIO_WEB_INSTANCE} classifier --help
-or access the API directly.
-"""
-
-from __future__ import absolute_import, print_function
-
-from .api import get_keywords_from_text, get_keywords_from_local_file
-from .ext import InvenioClassifier
-from .version import __version__
-
-__all__ = (
-    '__version__',
-    'InvenioClassifier',
-    'get_keywords_from_text',
-    'get_keywords_from_local_file',
-)
+pydocstyle invenio_classifier && \
+isort -rc -c -df **/*.py && \
+check-manifest --ignore ".travis-*" && \
+sphinx-build -qnNW docs docs/_build/html && \
+python setup.py test && \
+sphinx-build -qnNW -b doctest docs docs/_build/doctest

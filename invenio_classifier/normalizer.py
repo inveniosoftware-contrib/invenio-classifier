@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015 CERN.
+# Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -30,14 +30,9 @@ references section and to replace Unicode characters.
 import re
 
 from flask import current_app
-
-from .find import (
-    find_end_of_reference_section,
-    find_reference_section,
-)
-
 from six import iteritems
 
+from .find import find_end_of_reference_section, find_reference_section
 
 _washing_regex = []
 
@@ -630,11 +625,11 @@ UNDESIRABLE_STRING_REPLACEMENTS = [
 
 
 def replace_undesirable_characters(line):
-    """
-    Replace certain bad characters in a text line.
-    @param line: (string) the text line in which bad characters are to
+    """Replace certain bad characters in a text line.
+
+    :param line: (string) the text line in which bad characters are to
                  be replaced.
-    @return: (string) the text line after the bad characters have been
+    :return: (string) the text line after the bad characters have been
                       replaced.
     """
     # These are separate because we want a particular order

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 CERN.
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -17,22 +17,18 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""Finding the reference section from the fulltext"""
+"""Finding the reference section from the fulltext."""
 
 import re
 
 from flask import current_app
 
-from .regexs import \
-    get_reference_section_title_patterns, \
-    get_reference_line_numeration_marker_patterns, \
-    regex_match_list, \
+from .regexs import get_post_reference_section_keyword_patterns, \
     get_post_reference_section_title_patterns, \
-    get_post_reference_section_keyword_patterns, \
-    re_reference_line_bracket_markers, \
-    re_reference_line_dot_markers, \
-    re_reference_line_number_markers, \
-    re_num
+    get_reference_line_numeration_marker_patterns, \
+    get_reference_section_title_patterns, re_num, \
+    re_reference_line_bracket_markers, re_reference_line_dot_markers, \
+    re_reference_line_number_markers, regex_match_list
 
 
 def find_reference_section(docbody):
@@ -92,6 +88,7 @@ def find_reference_section(docbody):
 
 
 def find_numeration_in_body(docbody):
+    """Find numeration in body."""
     marker_patterns = get_reference_line_numeration_marker_patterns()
     ref_details = None
     found_title = False
@@ -135,6 +132,7 @@ def find_numeration_in_body(docbody):
 
 
 def find_numeration_in_title(docbody, title):
+    """Find numeration in title."""
     ref_details = None
     found_title = False
 
@@ -171,7 +169,7 @@ def find_numeration_in_title(docbody, title):
 
 
 def find_numeration(docbody, title):
-    """Find numeration pattern
+    """Find numeration pattern.
 
     1st try to find numeration in the title
     e.g.
@@ -472,7 +470,7 @@ def find_end_of_reference_section(docbody,
 
 
 def get_reference_section_beginning(fulltext):
-
+    """Get start of reference section."""
     sect_start = {
         'start_line': None,
         'end_line': None,

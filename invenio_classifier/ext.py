@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -22,19 +22,31 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-# Extraction from Python source files
+"""Invenio module for record classification."""
 
-[python: **.py]
-encoding = utf-8
+from __future__ import absolute_import, print_function
 
-# Extraction from Jinja2 templates
+from . import config
+from .cli import classifier as classifier_cmd
 
-[jinja2: **/templates/**.html]
-encoding = utf-8
-extensions = jinja2.ext.autoescape, jinja2.ext.with_
 
-# Extraction from JavaScript files
+class InvenioClassifier(object):
+    """Invenio-Classifier extension."""
 
-[javascript: **.js]
-encoding = utf-8
-extract_messages = $._, jQuery._
+    def __init__(self, app=None):
+        """Extension initialization."""
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Flask application initialization."""
+        self.init_config(app)
+        app.cli.add_command(classifier_cmd)
+        app.extensions['invenio-classifier'] = self
+
+    @staticmethod
+    def init_config(app):
+        """Initialize configuration."""
+        for k in dir(config):
+            if k.startswith('CLASSIFIER_'):
+                app.config.setdefault(k, getattr(config, k))

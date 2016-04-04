@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015, 2016 CERN.
+# Copyright (C) 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -25,64 +25,47 @@
 """Invenio module for record classification."""
 
 import os
-import sys
 
-from setuptools import setup
-from setuptools.command.test import test as TestCommand
+from setuptools import find_packages, setup
 
 readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
-requirements = [
-    'Flask>=0.10.1',
-    'six>=1.7.2',
-    'invenio-base>=0.3.1,<1.0.0',
-    'invenio-ext>=0.3.1,<1.0.0',
-    'invenio-utils>=0.2.0,<1.0.0',
-    'rdflib>=4.2.1',
-]
-
-test_requirements = [
-    'unittest2>=1.1.0',
-    'Flask_Testing>=0.4.2',
+tests_require = [
+    'check-manifest>=0.25',
+    'coverage>=4.0',
+    'isort>=4.2.2',
+    'pydocstyle>=1.0.0',
+    'pytest-cache>=1.0',
+    'pytest-cov>=1.8.0',
+    'pytest-pep8>=1.0.6',
     'pytest>=2.8.0',
-    'pytest_cov>=2.1.0',
-    'pytest_pep8>=1.0.6',
-    'coverage>=4.0.0',
-    'invenio-testing>=0.1.0',
 ]
 
+extras_require = {
+    'docs': [
+        'Sphinx>=1.3',
+    ],
+    'tests': tests_require,
+}
 
-class PyTest(TestCommand):
+extras_require['all'] = []
+for reqs in extras_require.values():
+    extras_require['all'].extend(reqs)
 
-    """PyTest Test."""
+setup_requires = [
+    'pytest-runner>=2.6.2',
+]
 
-    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+install_requires = [
+    'flask-cli>=0.2.1',
+    'rdflib>=4.2.1',
+    'six>=1.10.0',
+    'requests>=2.9.1'
+]
 
-    def initialize_options(self):
-        """Init pytest."""
-        TestCommand.initialize_options(self)
-        self.pytest_args = []
-        try:
-            from ConfigParser import ConfigParser
-        except ImportError:
-            from configparser import ConfigParser
-        config = ConfigParser()
-        config.read('pytest.ini')
-        self.pytest_args = config.get('pytest', 'addopts').split(' ')
+packages = find_packages()
 
-    def finalize_options(self):
-        """Finalize pytest."""
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        """Run tests."""
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.pytest_args)
-        sys.exit(errno)
 
 # Get the version string. Cannot be done with import!
 g = {}
@@ -100,20 +83,19 @@ setup(
     author='CERN',
     author_email='info@invenio-software.org',
     url='https://github.com/inveniosoftware/invenio-classifier',
-    packages=[
-        'invenio_classifier',
-    ],
+    packages=packages,
     zip_safe=False,
     include_package_data=True,
     platforms='any',
-    install_requires=requirements,
-    extras_require={
-        'docs': [
-            'Sphinx>=1.3',
-            'sphinx_rtd_theme>=0.1.7'
+    entry_points={
+        'invenio_base.apps': [
+            'invenio_classifier = invenio_classifier:InvenioClassifier',
         ],
-        'tests': test_requirements
     },
+    extras_require=extras_require,
+    install_requires=install_requires,
+    setup_requires=setup_requires,
+    tests_require=tests_require,
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -123,13 +105,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python :: 2',
-        # 'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Development Status :: 1 - Planning',
     ],
-    tests_require=test_requirements,
-    cmdclass={'test': PyTest},
 )
