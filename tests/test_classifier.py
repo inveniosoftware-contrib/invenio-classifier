@@ -28,11 +28,15 @@ import time
 
 import pytest
 
-from invenio_classifier import get_keywords_from_text
+from invenio_classifier.errors import TaxonomyError
+from invenio_classifier import (
+    get_keywords_from_text,
+    get_keywords_from_local_file
+)
 
 
 def test_keywords(app, demo_taxonomy, demo_text):
-    """Test version import."""
+    """Test keyword extraction from text."""
     with app.app_context():
         out = get_keywords_from_text(
             text_lines=[demo_text],
@@ -51,8 +55,60 @@ def test_keywords(app, demo_taxonomy, demo_text):
         assert "supersymmetry" in core_keywords
 
 
+def test_taxonomy_error(app, demo_text):
+    """Test passing non existing taxonomy."""
+    with app.app_context():
+        with pytest.raises(TaxonomyError):
+            out = get_keywords_from_text(
+                text_lines=[demo_text],
+                taxonomy_name="foo",
+                output_mode="dict"
+            )
+
+
+def test_file_extration(app, demo_pdf_file, demo_taxonomy):
+    """Test extracting keywords from PDF."""
+    with app.app_context():
+        out = get_keywords_from_local_file(
+            demo_pdf_file,
+            taxonomy_name=demo_taxonomy,
+            output_mode="dict"
+        )
+        output = out.get("complete_output")
+        single_keywords = output.get("Single keywords", []).keys()
+
+        assert len(single_keywords) == 4
+        assert "gauge field theory Yang-Mills" in single_keywords
+
+        core_keywords = output.get("Core keywords", []).keys()
+
+        assert len(core_keywords) == 3
+        assert "Yang-Mills" in core_keywords
+
+
+def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
+    """Test grabbing taxonomy from the CLASSIFIER_WORKDIR."""
+    app.config.update({"CLASSIFIER_WORKDIR": os.path.dirname(demo_taxonomy)})
+    with app.app_context():
+        out = get_keywords_from_text(
+            text_lines=[demo_text],
+            taxonomy_name="test.rdf",
+            output_mode="dict"
+        )
+        output = out.get("complete_output")
+        single_keywords = output.get("Single keywords", []).keys()
+
+        assert len(single_keywords) == 3
+        assert "aberration" in single_keywords
+
+        core_keywords = output.get("Core keywords", []).keys()
+
+        assert len(core_keywords) == 2
+        assert "supersymmetry" in core_keywords
+
+
 def test_rebuild_cache(app, demo_taxonomy):
-    """classifier - test rebuilding cache."""
+    """Test rebuilding taxonomy cache."""
     from invenio_classifier.reader import (
         _get_ontology,
         _get_cache_path,
@@ -83,11 +139,10 @@ def test_rebuild_cache(app, demo_taxonomy):
 
 
 def test_cache_accessibility(app, demo_taxonomy):
-    """classifier - test cache accessibility/writability"""
+    """Test taxonomy cache accessibility/writability."""
     from invenio_classifier.reader import (
         _get_ontology, get_regular_expressions, _get_cache_path
     )
-    from invenio_classifier.errors import TaxonomyError
 
     assert os.path.exists(demo_taxonomy)
 
