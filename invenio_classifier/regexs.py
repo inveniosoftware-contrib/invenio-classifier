@@ -306,12 +306,12 @@ raw_url_pattern = r"""
         (https?|s?ftp)://(?:[\w\d_.-])+(?::\d{1,5})?
         (?:/[\w\d_.?=&%~∼-]+)*/?
 """
-# Stand-alone URL (e.g. http://invenio-software.org/ )
+# Stand-alone URL (e.g. http://inveniosoftware.org/ )
 re_raw_url = \
     re.compile("['\"]?(?P<url>" + raw_url_pattern + ")['\"]?",
                re.UNICODE | re.I | re.VERBOSE)
 
-# HTML marked-up URL (e.g. <a href="http://invenio-software.org/">
+# HTML marked-up URL (e.g. <a href="http://inveniosoftware.org/">
 # CERN Document Server Software Consortium</a> )
 re_html_tagged_url = \
     re.compile(r"""
