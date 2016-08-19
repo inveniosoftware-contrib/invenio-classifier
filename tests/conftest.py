@@ -32,7 +32,6 @@ import tempfile
 
 import pytest
 from flask import Flask
-from flask_cli import FlaskCLI
 
 from invenio_classifier import InvenioClassifier
 
@@ -45,7 +44,6 @@ def app():
     app.config.update(
         TESTING=True,
     )
-    FlaskCLI(app)
     InvenioClassifier(app)
     return app
 

@@ -28,7 +28,6 @@
 from __future__ import absolute_import, print_function
 
 from flask import Flask
-from flask_cli import FlaskCLI
 
 from invenio_classifier import InvenioClassifier
 
@@ -42,12 +41,10 @@ def test_version():
 def test_init():
     """Test extension initialization."""
     app = Flask('testapp')
-    FlaskCLI(app)
     ext = InvenioClassifier(app)
     assert 'invenio-classifier' in app.extensions
 
     app = Flask('testapp')
-    FlaskCLI(app)
     ext = InvenioClassifier()
     assert 'invenio-classifier' not in app.extensions
     ext.init_app(app)

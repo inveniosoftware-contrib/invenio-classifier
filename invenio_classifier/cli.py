@@ -26,7 +26,7 @@ import sys
 
 import click
 from flask import current_app
-from flask_cli import with_appcontext
+from flask.cli import with_appcontext
 
 from .api import get_keywords_from_local_file
 

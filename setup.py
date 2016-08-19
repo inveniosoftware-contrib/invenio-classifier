@@ -58,7 +58,7 @@ setup_requires = [
 ]
 
 install_requires = [
-    'flask-cli>=0.2.1',
+    'Flask>=0.11.1',
     'rdflib>=4.2.1',
     'six>=1.10.0',
     'requests>=2.9.1'
