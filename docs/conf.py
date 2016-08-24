@@ -138,8 +138,8 @@ html_theme_options = {
     'github_banner': True,
     'show_powered_by': False,
     'extra_nav_links': {
-        'invenio-classifier@GitHub': 'http://github.com/inveniosoftware/invenio-classifier',
-        'invenio-classifier@PyPI': 'http://pypi.python.org/pypi/invenio-classifier/',
+        'invenio-classifier@GitHub': 'https://github.com/inveniosoftware/invenio-classifier',
+        'invenio-classifier@PyPI': 'https://pypi.python.org/pypi/invenio-classifier/',
     }
 }
 
@@ -330,3 +330,6 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Autodoc configuraton.
+autoclass_content = 'both'
