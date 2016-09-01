@@ -36,6 +36,7 @@ charset = utf-8
 [*.py]
 indent_size = 4
 # isort plugin configuration
+known_standard_library = stat
 known_first_party = invenio_classifier
 multi_line_output = 2
 default_section = THIRDPARTY

@@ -36,7 +36,6 @@ import sys
 import tempfile
 import time
 import xml.sax
-
 from datetime import datetime, timedelta
 
 import rdflib
