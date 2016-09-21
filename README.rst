@@ -25,20 +25,20 @@
  Invenio-Classifier
 ====================
 
-.. image:: https://img.shields.io/travis/inveniosoftware/invenio-classifier.svg
-        :target: https://travis-ci.org/inveniosoftware/invenio-classifier
+.. image:: https://img.shields.io/travis/inveniosoftware-contrib/invenio-classifier.svg
+        :target: https://travis-ci.org/inveniosoftware-contrib/invenio-classifier
 
-.. image:: https://img.shields.io/coveralls/inveniosoftware/invenio-classifier.svg
-        :target: https://coveralls.io/r/inveniosoftware/invenio-classifier
+.. image:: https://img.shields.io/coveralls/inveniosoftware-contrib/invenio-classifier.svg
+        :target: https://coveralls.io/r/inveniosoftware-contrib/invenio-classifier
 
-.. image:: https://img.shields.io/github/tag/inveniosoftware/invenio-classifier.svg
-        :target: https://github.com/inveniosoftware/invenio-classifier/releases
+.. image:: https://img.shields.io/github/tag/inveniosoftware-contrib/invenio-classifier.svg
+        :target: https://github.com/inveniosoftware-contrib/invenio-classifier/releases
 
 .. image:: https://img.shields.io/pypi/dm/invenio-classifier.svg
         :target: https://pypi.python.org/pypi/invenio-classifier
 
-.. image:: https://img.shields.io/github/license/inveniosoftware/invenio-classifier.svg
-        :target: https://github.com/inveniosoftware/invenio-classifier/blob/master/LICENSE
+.. image:: https://img.shields.io/github/license/inveniosoftware-contrib/invenio-classifier.svg
+        :target: https://github.com/inveniosoftware-contrib/invenio-classifier/blob/master/LICENSE
 
 
 Invenio module for record classification.
@@ -183,9 +183,8 @@ language.
 
 Happy hacking and thanks for flying Invenio-Classifier.
 
-| Invenio Development Team
-|   Email: info@inveniosoftware.org
-|   IRC: #invenio on irc.freenode.net
+| Inspirehep Development Team
+|   Email: admin@inspirehep.net
 |   Twitter: http://twitter.com/inveniosoftware
-|   GitHub: https://github.com/inveniosoftware/invenio-classifier
+|   GitHub: https://github.com/inveniosoftware-contrib/invenio-classifier
 |   URL: http://inveniosoftware.org

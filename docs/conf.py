@@ -132,13 +132,13 @@ html_theme = 'alabaster'
 
 html_theme_options = {
     'description': 'Invenio module for record classification.',
-    'github_user': 'inveniosoftware',
+    'github_user': 'inveniosoftware-contrib',
     'github_repo': 'invenio-classifier',
     'github_button': False,
     'github_banner': True,
     'show_powered_by': False,
     'extra_nav_links': {
-        'invenio-classifier@GitHub': 'https://github.com/inveniosoftware/invenio-classifier',
+        'invenio-classifier@GitHub': 'https://github.com/inveniosoftware-contrib/invenio-classifier',
         'invenio-classifier@PyPI': 'https://pypi.python.org/pypi/invenio-classifier/',
     }
 }

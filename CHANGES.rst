@@ -24,6 +24,26 @@
 Changes
 =======
 
+Version 1.0.0 (release 2016-09-21)
+----------------------------------
+
+Incompatible changes
+~~~~~~~~~~~~~~~~~~~~
+
+- Changes module to be compatible with Invenio 3.
+
+Bug fixes
+~~~~~~~~~
+
+- Fixes a crash when trying to discover a taxonomy when
+  CLASSIFIER_WORKDIR is set to None.
+- Updates minimum dependencies of Invenio packages to newer versions.
+- Removes a bug in bibclassify_keyword_analyzer.py. If a combination
+  is found via a synonym or regexp it is no longer thrown away just
+  because the components of the combination are not found in the text.
+- Adds missing `invenio_base` dependency.
+
 Version 0.1.0 (release 2015-08-19)
+----------------------------------
 
 - Initial public release.

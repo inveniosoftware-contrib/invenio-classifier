@@ -1,20 +1,22 @@
 ===========================
- Invenio-Classifier v0.1.0
+ Invenio-Classifier v1.0.0
 ===========================
 
-Invenio-Classifier v0.1.0 was released on August 19, 2015.
+Incompatible changes
+--------------------
 
-About
------
+- Changes module to be compatible with Invenio 3.
 
-Invenio module for record classification.
+Bug fixes
+---------
 
-*This is an experimental development preview release.*
-
-What's new
-----------
-
-- Initial public release.
+- Fixes a crash when trying to discover a taxonomy when
+  CLASSIFIER_WORKDIR is set to None.
+- Updates minimum dependencies of Invenio packages to newer versions.
+- Removes a bug in bibclassify_keyword_analyzer.py. If a combination
+  is found via a synonym or regexp it is no longer thrown away just
+  because the components of the combination are not found in the text.
+- Adds missing `invenio_base` dependency.
 
 Installation
 ------------
@@ -28,9 +30,8 @@ Documentation
 
 Happy hacking and thanks for flying Invenio-Classifier.
 
-| Invenio Development Team
-|   Email: info@inveniosoftware.org
-|   IRC: #invenio on irc.freenode.net
+| Inspirehep Development Team
+|   Email: admin@inspirehep.net
 |   Twitter: http://twitter.com/inveniosoftware
-|   GitHub: https://github.com/inveniosoftware/invenio-classifier
+|   GitHub: https://github.com/inveniosoftware-contrib/invenio-classifier
 |   URL: http://inveniosoftware.org

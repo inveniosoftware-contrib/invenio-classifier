@@ -28,4 +28,4 @@ This file is imported by ``invenio_classifier.__init__``,
 and parsed by ``setup.py``.
 """
 
-__version__ = "1.0.0.dev20160404"
+__version__ = "1.0.0"
