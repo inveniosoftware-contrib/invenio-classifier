@@ -58,6 +58,15 @@ def demo_taxonomy():
 
 
 @pytest.fixture
+def demo_pdf_file():
+    """Return path to demo PDF file."""
+    return os.path.join(
+        os.path.dirname(__file__), 'data',
+        '1603.08749.pdf'
+    )
+
+
+@pytest.fixture
 def demo_text():
     """Return sample text to extract keywords from."""
     return """

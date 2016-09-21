@@ -254,9 +254,12 @@ def _discover_ontology(ontology_path):
     if not last_part.endswith('.rdf'):
         possible_patterns.append(last_part + '.rdf')
     places = [os.path.join(current_app.instance_path, "classifier"),
-              current_app.config['CLASSIFIER_WORKDIR'],
               os.path.abspath('.'),
               os.path.join(os.path.dirname(__file__), "classifier")]
+
+    workdir = current_app.config.get('CLASSIFIER_WORKDIR')
+    if workdir:
+        places.append(workdir)
 
     current_app.logger.debug(
         "Searching for taxonomy using string: %s" % last_part)
