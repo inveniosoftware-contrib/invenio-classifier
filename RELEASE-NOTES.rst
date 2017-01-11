@@ -1,5 +1,5 @@
 ===========================
- Invenio-Classifier v1.0.0
+ Invenio-Classifier v1.0.1
 ===========================
 
 Incompatible changes

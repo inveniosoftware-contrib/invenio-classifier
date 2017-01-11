@@ -24,7 +24,7 @@
 Changes
 =======
 
-Version 1.0.0 (release 2016-09-21)
+Version 1.0.1 (release 2017-01-11)
 ----------------------------------
 
 Incompatible changes
