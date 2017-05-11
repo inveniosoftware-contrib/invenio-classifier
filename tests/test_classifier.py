@@ -42,12 +42,12 @@ def test_keywords(app, demo_taxonomy, demo_text):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("Single keywords", []).keys()
+        single_keywords = output.get("single_keywords", []).keys()
 
         assert len(single_keywords) == 3
         assert "aberration" in single_keywords
 
-        core_keywords = output.get("Core keywords", []).keys()
+        core_keywords = output.get("core_keywords", []).keys()
 
         assert len(core_keywords) == 2
         assert "supersymmetry" in core_keywords
@@ -73,15 +73,32 @@ def test_file_extration(app, demo_pdf_file, demo_taxonomy):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("Single keywords", []).keys()
+        single_keywords = output.get("single_keywords", []).keys()
 
         assert len(single_keywords) == 4
         assert "gauge field theory Yang-Mills" in single_keywords
 
-        core_keywords = output.get("Core keywords", []).keys()
+        core_keywords = output.get("core_keywords", []).keys()
 
         assert len(core_keywords) == 3
         assert "Yang-Mills" in core_keywords
+
+
+def test_author_keywords(app, demo_pdf_file_with_author_keywords,
+                         demo_taxonomy):
+    """Test extracting author keywords from PDF."""
+    with app.app_context():
+        out = get_keywords_from_local_file(
+            demo_pdf_file_with_author_keywords,
+            taxonomy_name=demo_taxonomy,
+            output_mode="dict",
+            with_author_keywords=True
+        )
+        output = out.get("complete_output")
+        author_keywords = output.get("author_keywords", [])
+
+        assert len(author_keywords) == 4, output
+        assert {'author_keyword': 'g-measure'} in author_keywords
 
 
 def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
@@ -94,12 +111,12 @@ def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("Single keywords", []).keys()
+        single_keywords = output.get("single_keywords", []).keys()
 
         assert len(single_keywords) == 3
         assert "aberration" in single_keywords
 
-        core_keywords = output.get("Core keywords", []).keys()
+        core_keywords = output.get("core_keywords", []).keys()
 
         assert len(core_keywords) == 2
         assert "supersymmetry" in core_keywords

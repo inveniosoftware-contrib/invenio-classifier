@@ -235,16 +235,19 @@ def _output_marc(output_complete, categories,
     output = []
 
     tag, ind1, ind2 = _parse_marc_code(kw_field)
-    for keywords in (output_complete["Single keywords"],
-                     output_complete["Core keywords"]):
+    for keywords in (output_complete["single_keywords"],
+                     output_complete["core_keywords"]):
         for kw in keywords:
             output.append(kw_template % (tag, ind1, ind2,
                                          encode_for_xml(provenience),
                                          encode_for_xml(kw), keywords[kw],
                                          encode_for_xml(categories[kw])))
 
-    for field, keywords in ((auth_field, output_complete["Author keywords"]),
-                            (acro_field, output_complete["Acronyms"])):
+    author_keywords = [keyword['author_keyword'] for keyword in
+                       output_complete["author_keywords"]]
+
+    for field, keywords in ((auth_field, author_keywords),
+                            (acro_field, output_complete["acronyms"])):
         # field='' we shall not save the keywords
         if keywords and len(keywords) and field:
             tag, ind1, ind2 = _parse_marc_code(field)
@@ -270,18 +273,18 @@ def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
         resized_skw = skw_matches
         resized_ckw = ckw_matches
 
-    results = {"Core keywords": _get_core_keywords(
+    results = {"core_keywords": _get_core_keywords(
         skw_matches, ckw_matches, spires=spires)}
 
     if not only_core_tags:
-        results["Author keywords"] = _get_author_keywords(
+        results["author_keywords"] = _get_author_keywords(
             author_keywords, spires=spires)
-        results["Composite keywords"] = _get_compositekws(
+        results["composite_keywords"] = _get_compositekws(
             resized_ckw, spires=spires)
-        results["Single keywords"] = _get_singlekws(resized_skw, spires=spires)
-        results["Field codes"] = _get_fieldcodes(
+        results["single_keywords"] = _get_singlekws(resized_skw, spires=spires)
+        results["field_codes"] = _get_fieldcodes(
             resized_skw, resized_ckw, spires=spires)
-        results["Acronyms"] = _get_acronyms(acronyms)
+        results["acronyms"] = _get_acronyms(acronyms)
 
     return results
 
@@ -379,25 +382,20 @@ def _get_acronyms(acronyms):
 
 
 def _get_author_keywords(author_keywords, spires=False):
-    """Format the output for the author keywords.
-
-    :return: list of formatted author keywors
-    """
-    out = {}
+    out = []
     if author_keywords:
         for keyword, matches in author_keywords.items():
             skw_matches = matches[0]  # dictionary of single keywords
             ckw_matches = matches[1]  # dict of composite keywords
-            matches_str = []
+            matched_keywords = []
             for ckw, spans in ckw_matches.items():
-                matches_str.append(ckw.output(spires))
+                matched_keywords.append(ckw.output(spires))
             for skw, spans in skw_matches.items():
-                matches_str.append(skw.output(spires))
-            if matches_str:
-                out[keyword] = matches_str
-            else:
-                out[keyword] = 0
-
+                matched_keywords.append(skw.output(spires))
+            new_keyword = {'author_keyword': str(keyword)}
+            if matched_keywords:
+                new_keyword['matched_keywords'] = matched_keywords
+            out.append(new_keyword)
     return out
 
 
