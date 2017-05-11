@@ -280,6 +280,10 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
         if re.match('([A-Z].)+$', kw):
             kw = kw.replace('.', '')
 
+        # Drop trailing dots such as those in the last keyword.
+        if kw.endswith('.'):
+            kw = kw[:-1]
+
         # First try with the keyword as such, then lower it.
         kw_with_spaces = ' %s ' % kw
         matching_skw = get_single_keywords(skw_db, kw_with_spaces)
