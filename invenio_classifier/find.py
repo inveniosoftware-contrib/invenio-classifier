@@ -172,19 +172,23 @@ def find_numeration(docbody, title):
     """Find numeration pattern.
 
     1st try to find numeration in the title
-    e.g.
-    References [4] Riotto...
+    e.g.::
+
+        References [4] Riotto...
 
     2nd find the numeration alone in the line after the title
-    e.g.
-    References
-    1
-    Riotto
+    e.g.::
 
-    3rnd find the numeration in the following line
-    e.g.
-    References
-    [1] Riotto
+        References
+        1
+        Riotto
+
+    3rd find the numeration in the following line
+    e.g.::
+
+        References
+        [1] Riotto
+
     """
     ref_details, found_title = find_numeration_in_title(docbody, title)
     if not ref_details:
