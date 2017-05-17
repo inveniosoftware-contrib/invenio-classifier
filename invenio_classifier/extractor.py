@@ -25,15 +25,18 @@ determine if a local file is a PDF file.
 
 from __future__ import unicode_literals
 
+import codecs
 import os
 import re
 import subprocess
+
+import six
 
 from flask import current_app
 
 from .errors import IncompatiblePDF2Text
 
-_ONE_WORD = re.compile("[A-Za-z]{2,}")
+_ONE_WORD = re.compile("[A-Za-z]{2,}", re.U)
 
 
 def is_pdf(document):
@@ -81,17 +84,24 @@ def text_lines_from_local_file(document, remote=False):
                     "pdftotext is not available on the system."
                 )
             cmd = "pdftotext -q -enc UTF-8 %s -" % re.escape(document)
-            filestream = os.popen(cmd)
+            out = subprocess.Popen(["pdftotext", "-q", "-enc", "UTF-8",
+                                    document, "-"],
+                                   universal_newlines=True,
+                                   stdout=subprocess.PIPE)
+            (stdoutdata, stderrdata) = out.communicate()
+            lines = stdoutdata.splitlines()
+            if not isinstance(stdoutdata, six.text_type):
+                # We are in Python 2. We need to cast to unicode
+                lines = [line.decode('utf8', 'replace') for line in lines]
         else:
-            filestream = open(document, "r")
+            filestream = codecs.open(document, "r", errors="replace")
+            # FIXME - we assume it is utf-8 encoded / that is not good
+            lines = [line for line in filestream]
+            filestream.close()
     except IOError as ex1:
         current_app.logger.error("Unable to read from file %s. (%s)"
                                  % (document, ex1.strerror))
         return []
-
-    # FIXME - we assume it is utf-8 encoded / that is not good
-    lines = [line.decode("utf-8", 'replace') for line in filestream]
-    filestream.close()
 
     # Discard lines that do not contain at least one word.
     return [line for line in lines if _ONE_WORD.search(line) is not None]
