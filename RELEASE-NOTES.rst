@@ -1,18 +1,11 @@
 ===========================
- Invenio-Classifier v1.1.0
+ Invenio-Classifier v1.1.1
 ===========================
-
-Incompatible changes
---------------------
-
-- Changes dict export format for author keywords, into an improved and semantic
-  way.
-- Renames keys in dict export to be lower case and separated by `_`.
 
 Bug fixes
 ---------
 
-- Drop trailing dots in author keywords.
+- Enforce utf8 also for non PDF files in extractor.
 
 Installation
 ------------

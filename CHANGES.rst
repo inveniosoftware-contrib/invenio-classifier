@@ -24,6 +24,14 @@
 Changes
 =======
 
+Version 1.1.1 (release 2017-05-19)
+----------------------------------
+
+Bug fixes
+~~~~~~~~~
+
+- Enforce utf8 also for non PDF files in extractor.
+
 Version 1.1.0 (release 2017-05-17)
 ----------------------------------
 
