@@ -94,7 +94,8 @@ def text_lines_from_local_file(document, remote=False):
                 # We are in Python 2. We need to cast to unicode
                 lines = [line.decode('utf8', 'replace') for line in lines]
         else:
-            filestream = codecs.open(document, "r", errors="replace")
+            filestream = codecs.open(document, "r", encoding="utf8",
+                                     errors="replace")
             # FIXME - we assume it is utf-8 encoded / that is not good
             lines = [line for line in filestream]
             filestream.close()
