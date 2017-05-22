@@ -67,6 +67,15 @@ def demo_pdf_file():
 
 
 @pytest.fixture
+def demo_pdf_file_with_funny_author_kw_sep():
+    """Return path to demo PDF file."""
+    return os.path.join(
+        os.path.dirname(__file__), 'data',
+        '1705.06516.pdf'
+    )
+
+
+@pytest.fixture
 def demo_pdf_file_with_author_keywords():
     """Return path to demo PDF file with author keywords."""
     return os.path.join(

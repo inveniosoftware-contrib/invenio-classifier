@@ -101,6 +101,23 @@ def test_author_keywords(app, demo_pdf_file_with_author_keywords,
         assert {'author_keyword': 'g-measure'} in author_keywords
 
 
+def test_author_keywords(app, demo_pdf_file_with_funny_author_kw_sep,
+                         demo_taxonomy):
+    """Test extracting author keywords separated by '·'"""
+    with app.app_context():
+        out = get_keywords_from_local_file(
+            demo_pdf_file_with_funny_author_kw_sep,
+            taxonomy_name=demo_taxonomy,
+            output_mode="dict",
+            with_author_keywords=True
+        )
+        output = out.get("complete_output")
+        author_keywords = output.get("author_keywords", [])
+
+        assert len(author_keywords) == 4, output
+        assert {'author_keyword': 'Depth cameras'} in author_keywords
+
+
 def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
     """Test grabbing taxonomy from the CLASSIFIER_WORKDIR."""
     app.config.update({"CLASSIFIER_WORKDIR": os.path.dirname(demo_taxonomy)})

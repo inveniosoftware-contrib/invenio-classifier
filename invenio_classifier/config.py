@@ -183,4 +183,4 @@ CLASSIFIER_AUTHOR_KW_END = (
     re.compile(r"(?i)mathematics subject classification\W"),
 )
 
-CLASSIFIER_AUTHOR_KW_SEPARATION = re.compile(" ?; ?| ?, ?| ?- ")
+CLASSIFIER_AUTHOR_KW_SEPARATION = re.compile(" ?; ?| ?, ?| ?- | ?· ")
