@@ -1,11 +1,12 @@
 ===========================
- Invenio-Classifier v1.1.1
+ Invenio-Classifier v1.1.2
 ===========================
 
 Bug fixes
 ---------
 
-- Enforce utf8 also for non PDF files in extractor.
+- Supports '·' author separator
+- Support utf8 author-keywords
 
 Installation
 ------------

@@ -24,6 +24,15 @@
 Changes
 =======
 
+Version 1.1.2 (release 2017-05-22)
+----------------------------------
+
+Bug fixes
+~~~~~~~~~
+
+- Supports '·' author separator
+- Support utf8 author-keywords
+
 Version 1.1.1 (release 2017-05-19)
 ----------------------------------
 
