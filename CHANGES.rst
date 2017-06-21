@@ -24,6 +24,14 @@
 Changes
 =======
 
+Version 1.2.0 (release 2017-06-21)
+----------------------------------
+
+Incompatible changes
+~~~~~~~~~~~~~~~~~~~~
+
+- Do not use keywords as dictionary keys, rather as elements in a list.
+
 Version 1.1.2 (release 2017-05-22)
 ----------------------------------
 

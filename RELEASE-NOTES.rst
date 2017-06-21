@@ -1,22 +1,21 @@
 ===========================
- Invenio-Classifier v1.1.2
+ Invenio-Classifier v1.2.0
 ===========================
 
-Bug fixes
----------
+Incompatible changes
+--------------------
 
-- Supports '·' author separator
-- Support utf8 author-keywords
+- Do not use keywords as dictionary keys, rather as elements in a list.
 
 Installation
 ------------
 
-   $ pip install invenio-classifier==0.1.0
+   $ pip install invenio-classifier==1.2.0
 
 Documentation
 -------------
 
-   http://invenio-classifier.readthedocs.org/en/v0.1.0
+   http://invenio-classifier.readthedocs.org/en/v1.2.0
 
 Happy hacking and thanks for flying Invenio-Classifier.
 
