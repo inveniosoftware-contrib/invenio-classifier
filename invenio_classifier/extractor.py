@@ -31,7 +31,6 @@ import re
 import subprocess
 
 import six
-
 from flask import current_app
 
 from .errors import IncompatiblePDF2Text

@@ -42,15 +42,15 @@ def test_keywords(app, demo_taxonomy, demo_text):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("single_keywords", {}).keys()
+        single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 3
-        assert "aberration" in single_keywords
+        assert ("aberration", 2) in single_keywords
 
-        core_keywords = output.get("core_keywords", {}).keys()
+        core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 2
-        assert "supersymmetry" in core_keywords
+        assert ("supersymmetry", 1) in core_keywords
 
 
 def test_taxonomy_error(app, demo_text):
@@ -73,15 +73,15 @@ def test_file_extration(app, demo_pdf_file, demo_taxonomy):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("single_keywords", {}).keys()
+        single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 4
-        assert "gauge field theory Yang-Mills" in single_keywords
+        assert ("gauge field theory Yang-Mills", 9) in single_keywords
 
-        core_keywords = output.get("core_keywords", {}).keys()
+        core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 3
-        assert "Yang-Mills" in core_keywords
+        assert ("Yang-Mills", 12) in core_keywords
 
 
 def test_author_keywords(app, demo_pdf_file_with_author_keywords,
@@ -128,15 +128,15 @@ def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
             output_mode="dict"
         )
         output = out.get("complete_output")
-        single_keywords = output.get("single_keywords", {}).keys()
+        single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 3
-        assert "aberration" in single_keywords
+        assert ("aberration", 2) in single_keywords
 
-        core_keywords = output.get("core_keywords", {}).keys()
+        core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 2
-        assert "supersymmetry" in core_keywords
+        assert ("supersymmetry", 1) in core_keywords
 
 
 def test_rebuild_cache(app, demo_taxonomy):

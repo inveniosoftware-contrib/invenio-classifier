@@ -136,6 +136,8 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
     for w in single_keywords_p:
         categories[w[0].concept] = w[0].type
 
+    categories = categories.items()
+
     complete_output = _output_complete(single_keywords_p, composite_keywords_p,
                                        author_keywords, acronyms, spires,
                                        only_core_tags, limit=output_limit)
@@ -352,7 +354,8 @@ def _get_singlekws(skw_matches, spires=False):
     output = {}
     for single_keyword, info in skw_matches:
         output[single_keyword.output(spires)] = len(info[0])
-    return output
+    output = output.items()
+    return sorted(output, key=lambda x: x[1], reverse=True)
 
 
 def _get_compositekws(ckw_matches, spires=False):
@@ -366,7 +369,8 @@ def _get_compositekws(ckw_matches, spires=False):
     for composite_keyword, info in ckw_matches:
         output[composite_keyword.output(spires)] = {"numbers": len(info[0]),
                                                     "details": info[1]}
-    return output
+    output = output.items()
+    return sorted(output, key=lambda x: x[1]['numbers'], reverse=True)
 
 
 def _get_acronyms(acronyms):
@@ -378,7 +382,7 @@ def _get_acronyms(acronyms):
                                         for expansion in expansions])
             acronyms_str[acronym] = expansions_str
 
-    return acronyms
+    return acronyms.items()
 
 
 def _get_author_keywords(author_keywords, spires=False):
@@ -405,7 +409,7 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
     :var skw_matches: dict of {keyword: [info,...]}
     :var ckw_matches: dict of {keyword: [info,...]}
     :keyword spires: bool, to get the spires output
-    :return: string
+    :return: list of tuples with (fieldcodes, keywords)
     """
     fieldcodes = {}
     output = {}
@@ -428,7 +432,7 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
     for fieldcode, keywords in fieldcodes.items():
         output[fieldcode] = ', '.join(keywords)
 
-    return output
+    return output.items()
 
 
 def _get_core_keywords(skw_matches, ckw_matches, spires=False):
@@ -437,7 +441,7 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
     :var skw_matches: dict of {keyword: [info,...]}
     :var ckw_matches: dict of {keyword: [info,...]}
     :keyword spires: bool, to get the spires output
-    :return: set of formatted core keywords
+    :return: list of formatted core keywords
     """
     output = {}
     category = {}
@@ -466,7 +470,8 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                 if c.core:
                     output[c.output(spires)] = info[1][i]
                 i += 1
-    return output
+    output = output.items()
+    return sorted(output, key=lambda x: x[1])
 
 
 def filter_core_keywords(keywords):
