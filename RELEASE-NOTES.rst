@@ -1,21 +1,22 @@
 ===========================
- Invenio-Classifier v1.2.0
+ Invenio-Classifier v1.3.0
 ===========================
 
 Incompatible changes
 --------------------
 
-- Do not use keywords as dictionary keys, rather as elements in a list.
+- Exports list of objects rather than list of tuples, to help ES
+  directly indexing the content.
 
 Installation
 ------------
 
-   $ pip install invenio-classifier==1.2.0
+   $ pip install invenio-classifier==1.3.0
 
 Documentation
 -------------
 
-   http://invenio-classifier.readthedocs.org/en/v1.2.0
+   http://invenio-classifier.readthedocs.org/en/v1.3.0
 
 Happy hacking and thanks for flying Invenio-Classifier.
 

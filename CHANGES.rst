@@ -24,6 +24,15 @@
 Changes
 =======
 
+Version 1.3.0 (release 2017-06-22)
+----------------------------------
+
+Incompatible changes
+~~~~~~~~~~~~~~~~~~~~
+
+- Exports list of objects rather than list of tuples, to help ES
+  directly indexing the content.
+
 Version 1.2.0 (release 2017-06-21)
 ----------------------------------
 
