@@ -45,12 +45,12 @@ def test_keywords(app, demo_taxonomy, demo_text):
         single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 3
-        assert ("aberration", 2) in single_keywords
+        assert {'keyword': "aberration", 'number': 2} in single_keywords
 
         core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 2
-        assert ("supersymmetry", 1) in core_keywords
+        assert {'keyword': "supersymmetry", 'number': 1} in core_keywords
 
 
 def test_taxonomy_error(app, demo_text):
@@ -76,12 +76,13 @@ def test_file_extration(app, demo_pdf_file, demo_taxonomy):
         single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 4
-        assert ("gauge field theory Yang-Mills", 9) in single_keywords
+        assert {'keyword': "gauge field theory Yang-Mills", 'number': 9} \
+            in single_keywords
 
         core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 3
-        assert ("Yang-Mills", 12) in core_keywords
+        assert {'keyword': "Yang-Mills", 'number': 12} in core_keywords
 
 
 def test_author_keywords(app, demo_pdf_file_with_author_keywords,
@@ -98,11 +99,12 @@ def test_author_keywords(app, demo_pdf_file_with_author_keywords,
         author_keywords = output.get("author_keywords", [])
 
         assert len(author_keywords) == 4, output
-        assert {'author_keyword': 'g-measure'} in author_keywords
+        assert {'author_keyword': 'Dyson model',
+                'matched_keywords': ['model']} in author_keywords
 
 
-def test_author_keywords(app, demo_pdf_file_with_funny_author_kw_sep,
-                         demo_taxonomy):
+def test_funny_author_keywords(app, demo_pdf_file_with_funny_author_kw_sep,
+                               demo_taxonomy):
     """Test extracting author keywords separated by '·'"""
     with app.app_context():
         out = get_keywords_from_local_file(
@@ -131,12 +133,12 @@ def test_taxonomy_workdir(app, demo_text, demo_taxonomy):
         single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 3
-        assert ("aberration", 2) in single_keywords
+        assert {'keyword': "aberration", 'number': 2} in single_keywords
 
         core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 2
-        assert ("supersymmetry", 1) in core_keywords
+        assert {'keyword': "supersymmetry", 'number': 1} in core_keywords
 
 
 def test_rebuild_cache(app, demo_taxonomy):

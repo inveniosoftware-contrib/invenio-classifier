@@ -136,7 +136,8 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
     for w in single_keywords_p:
         categories[w[0].concept] = w[0].type
 
-    categories = categories.items()
+    categories = [{'keyword': key, 'category': value}
+                  for key, value in categories.iteritems()]
 
     complete_output = _output_complete(single_keywords_p, composite_keywords_p,
                                        author_keywords, acronyms, spires,
@@ -354,8 +355,9 @@ def _get_singlekws(skw_matches, spires=False):
     output = {}
     for single_keyword, info in skw_matches:
         output[single_keyword.output(spires)] = len(info[0])
-    output = output.items()
-    return sorted(output, key=lambda x: x[1], reverse=True)
+    output = [{'keyword': key, 'number': value}
+              for key, value in output.iteritems()]
+    return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
 def _get_compositekws(ckw_matches, spires=False):
@@ -367,10 +369,13 @@ def _get_compositekws(ckw_matches, spires=False):
     """
     output = {}
     for composite_keyword, info in ckw_matches:
-        output[composite_keyword.output(spires)] = {"numbers": len(info[0]),
+        output[composite_keyword.output(spires)] = {"number": len(info[0]),
                                                     "details": info[1]}
-    output = output.items()
-    return sorted(output, key=lambda x: x[1]['numbers'], reverse=True)
+    output = [{'keyword': key,
+               'number': value['number'],
+               'details': value['details']}
+              for key, value in output.iteritems()]
+    return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
 def _get_acronyms(acronyms):
@@ -382,7 +387,8 @@ def _get_acronyms(acronyms):
                                         for expansion in expansions])
             acronyms_str[acronym] = expansions_str
 
-    return acronyms.items()
+    return [{'acronym': str(key), 'expansion': value.encode('utf8')}
+            for key, value in acronyms_str.iteritems()]
 
 
 def _get_author_keywords(author_keywords, spires=False):
@@ -432,7 +438,8 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
     for fieldcode, keywords in fieldcodes.items():
         output[fieldcode] = ', '.join(keywords)
 
-    return output.items()
+    return [{'fieldcode': key, 'keywords': value}
+            for key, value in output.iteritems()]
 
 
 def _get_core_keywords(skw_matches, ckw_matches, spires=False):
@@ -470,8 +477,9 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                 if c.core:
                     output[c.output(spires)] = info[1][i]
                 i += 1
-    output = output.items()
-    return sorted(output, key=lambda x: x[1])
+    output = [{'keyword': key, 'number': value}
+              for key, value in output.iteritems()]
+    return sorted(output, key=lambda x: x['number'])
 
 
 def filter_core_keywords(keywords):
