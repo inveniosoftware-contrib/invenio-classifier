@@ -479,7 +479,7 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                 i += 1
     output = [{'keyword': key, 'number': value}
               for key, value in output.iteritems()]
-    return sorted(output, key=lambda x: x['number'])
+    return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
 def filter_core_keywords(keywords):
