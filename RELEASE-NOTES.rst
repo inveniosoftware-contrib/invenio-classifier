@@ -1,22 +1,21 @@
 ===========================
- Invenio-Classifier v1.3.0
+ Invenio-Classifier v1.3.1
 ===========================
 
-Incompatible changes
---------------------
+Bug fixes
+---------
 
-- Exports list of objects rather than list of tuples, to help ES
-  directly indexing the content.
+- Reverse sort core keywords.
 
 Installation
 ------------
 
-   $ pip install invenio-classifier==1.3.0
+   $ pip install invenio-classifier==1.3.1
 
 Documentation
 -------------
 
-   http://invenio-classifier.readthedocs.org/en/v1.3.0
+   http://invenio-classifier.readthedocs.org/en/v1.3.1
 
 Happy hacking and thanks for flying Invenio-Classifier.
 

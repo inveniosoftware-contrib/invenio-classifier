@@ -24,6 +24,14 @@
 Changes
 =======
 
+Version 1.3.1 (release 2017-06-23)
+----------------------------------
+
+Bug fixes
+~~~~~~~~~
+
+- Reverse sort core keywords.
+
 Version 1.3.0 (release 2017-06-22)
 ----------------------------------
 
