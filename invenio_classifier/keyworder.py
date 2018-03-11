@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 CERN.
+# Copyright (C) 2008-2016, 2018 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -221,8 +221,11 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                     break
         if candidates:
             for kw1, kw2 in candidates:
-                match1 = ckw_out[kw1]  # subset of the kw2
-                match2 = ckw_out[kw2]
+                try:
+                    match1 = ckw_out[kw1]  # subset of the kw2
+                    match2 = ckw_out[kw2]
+                except KeyError:
+                    continue
                 positions1 = match1[0]
                 for pos1 in positions1:
                     for pos2 in match2[0]:
