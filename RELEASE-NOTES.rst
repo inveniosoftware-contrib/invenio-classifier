@@ -1,21 +1,21 @@
 ===========================
- Invenio-Classifier v1.3.1
+ Invenio-Classifier v1.3.2
 ===========================
 
 Bug fixes
 ---------
 
-- Reverse sort core keywords.
+- Prevent the "unprintable KeyError" problem from happening.
 
 Installation
 ------------
 
-   $ pip install invenio-classifier==1.3.1
+   $ pip install invenio-classifier==1.3.2
 
 Documentation
 -------------
 
-   http://invenio-classifier.readthedocs.org/en/v1.3.1
+   http://invenio-classifier.readthedocs.org/en/v1.3.2
 
 Happy hacking and thanks for flying Invenio-Classifier.
 
