@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2010, 2011, 2013, 2014, 2015, 2016 CERN.
+# Copyright (C) 2010, 2011, 2013, 2014, 2015, 2016, 2018 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -118,6 +118,22 @@ def test_funny_author_keywords(app, demo_pdf_file_with_funny_author_kw_sep,
 
         assert len(author_keywords) == 4, output
         assert {'author_keyword': 'Depth cameras'} in author_keywords
+
+
+def test_composite_keywords(app, hep_taxonomy, pdf_with_composite_keywords):
+    with app.app_context():
+        out = get_keywords_from_local_file(
+            pdf_with_composite_keywords,
+            taxonomy_name=hep_taxonomy,
+            output_mode='dict',
+        )
+        output = out.get('complete_output')
+        composite_keywords = output.get('composite_keywords', [])
+
+        assert len(composite_keywords) == 20, output
+        assert {'details': [64, 132],
+                'keyword': 'electronics: noise',
+                'number': 23} in composite_keywords
 
 
 def test_taxonomy_workdir(app, demo_text, demo_taxonomy):

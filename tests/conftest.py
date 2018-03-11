@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2016, 2018 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -58,6 +58,13 @@ def demo_taxonomy():
 
 
 @pytest.fixture
+def hep_taxonomy():
+    """Return path to HEP taxonomy file."""
+    return os.path.join(
+        os.path.dirname(__file__), 'data', 'taxonomies', 'HEPont.rdf')
+
+
+@pytest.fixture
 def demo_pdf_file():
     """Return path to demo PDF file."""
     return os.path.join(
@@ -82,6 +89,13 @@ def demo_pdf_file_with_author_keywords():
         os.path.dirname(__file__), 'data',
         '1705.03156.pdf'
     )
+
+
+@pytest.fixture
+def pdf_with_composite_keywords():
+    """Return path to PDF file with composite keywords."""
+    return os.path.join(
+        os.path.dirname(__file__), 'data', '1802.08709.pdf')
 
 
 @pytest.fixture
