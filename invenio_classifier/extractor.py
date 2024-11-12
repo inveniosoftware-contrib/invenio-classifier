@@ -40,7 +40,18 @@ _ONE_WORD = re.compile("[A-Za-z]{2,}", re.U)
 
 def is_pdf(document):
     """Check if a document is a PDF file and return True if is is."""
-    if not executable_exists('pdftotext'):
+    if executable_exists("pdftotext"):
+        try:
+            out = subprocess.Popen(["pdftotext", "-q", document, "-"],
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE)
+            (stdoutdata, stderrdata) = out.communicate()
+            if stdoutdata:
+                return True
+        except IOError as ex1:
+            current_app.logger.error("Unable to read from file %s. (%s)"
+                                            % (document, ex1.strerror))
+    else:
         current_app.logger.warning(
             "GNU file was not found on the system. "
             "Switching to a weak file extension test."
@@ -82,7 +93,6 @@ def text_lines_from_local_file(document, remote=False):
                 current_app.logger.error(
                     "pdftotext is not available on the system."
                 )
-            cmd = "pdftotext -q -enc UTF-8 %s -" % re.escape(document)
             out = subprocess.Popen(["pdftotext", "-q", "-enc", "UTF-8",
                                     document, "-"],
                                    universal_newlines=True,
