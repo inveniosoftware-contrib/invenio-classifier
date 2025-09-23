@@ -33,6 +33,7 @@ from flask import current_app
 
 from .errors import OntologyError
 
+from .utils import get_clock
 
 def get_single_keywords(skw_db, fulltext):
     """Find single keywords in the fulltext.
@@ -45,7 +46,7 @@ def get_single_keywords(skw_db, fulltext):
         ..
     }
     """
-    timer_start = time.clock()
+    timer_start = get_clock()
 
     # single keyword -> [spans]
     records = []
@@ -83,7 +84,7 @@ def get_single_keywords(skw_db, fulltext):
 
     current_app.logger.info(
         "Matching single keywords... %d keywords found "
-        "in %.1f sec." % (len(single_keywords), time.clock() - timer_start),
+        "in %.1f sec." % (len(single_keywords), get_clock() - timer_start),
     )
     return single_keywords
 
@@ -101,7 +102,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
             ..
             }
     """
-    timer_start = time.clock()
+    timer_start = get_clock()
 
     # Build the list of composite candidates
     ckw_out = {}
@@ -239,7 +240,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
 
     current_app.logger.info(
         "Matching composite keywords... %d keywords found "
-        "in %.1f sec." % (len(ckw_out), time.clock() - timer_start),
+        "in %.1f sec." % (len(ckw_out), get_clock() - timer_start),
     )
     return ckw_out
 
@@ -250,7 +251,7 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
     Searches for the string "Keywords:" and its declinations and matches the
     following words.
     """
-    timer_start = time.clock()
+    timer_start = get_clock()
     out = {}
 
     split_string = current_app.config[
@@ -274,7 +275,7 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
     current_app.logger.info(
         "Matching author keywords... %d keywords found in "
-        "%.1f sec." % (len(author_keywords), time.clock() - timer_start)
+        "%.1f sec." % (len(author_keywords), get_clock() - timer_start)
     )
 
     for kw in author_keywords:

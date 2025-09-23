@@ -137,7 +137,7 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
         categories[w[0].concept] = w[0].type
 
     categories = [{'keyword': key, 'category': value}
-                  for key, value in categories.iteritems()]
+                  for key, value in iteritems(categories)]
 
     complete_output = _output_complete(single_keywords_p, composite_keywords_p,
                                        author_keywords, acronyms, spires,
@@ -356,7 +356,7 @@ def _get_singlekws(skw_matches, spires=False):
     for single_keyword, info in skw_matches:
         output[single_keyword.output(spires)] = len(info[0])
     output = [{'keyword': key, 'number': value}
-              for key, value in output.iteritems()]
+              for key, value in iteritems(output)]
     return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
@@ -374,7 +374,7 @@ def _get_compositekws(ckw_matches, spires=False):
     output = [{'keyword': key,
                'number': value['number'],
                'details': value['details']}
-              for key, value in output.iteritems()]
+              for key, value in iteritems(output)]
     return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
@@ -388,7 +388,7 @@ def _get_acronyms(acronyms):
             acronyms_str[acronym] = expansions_str
 
     return [{'acronym': str(key), 'expansion': value.encode('utf8')}
-            for key, value in acronyms_str.iteritems()]
+            for key, value in iteritems(acronyms_str)]
 
 
 def _get_author_keywords(author_keywords, spires=False):
@@ -439,7 +439,7 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
         output[fieldcode] = ', '.join(keywords)
 
     return [{'fieldcode': key, 'keywords': value}
-            for key, value in output.iteritems()]
+            for key, value in iteritems(output)]
 
 
 def _get_core_keywords(skw_matches, ckw_matches, spires=False):
@@ -478,7 +478,7 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                     output[c.output(spires)] = info[1][i]
                 i += 1
     output = [{'keyword': key, 'number': value}
-              for key, value in output.iteritems()]
+              for key, value in iteritems(output)]
     return sorted(output, key=lambda x: x['number'], reverse=True)
 
 
@@ -542,8 +542,8 @@ def _kw(keywords):
 
 def _sort_kw_matches(skw_matches, limit=0):
     """Return a resized version of keywords to the given length."""
-    sorted_keywords = list(skw_matches.items())
-    sorted(sorted_keywords, key=cmp_to_key(_skw_matches_comparator))
+    list_keywords = list(skw_matches.items())
+    sorted_keywords = sorted(list_keywords, key=cmp_to_key(_skw_matches_comparator))
     return limit and sorted_keywords[:limit] or sorted_keywords
 
 

@@ -30,6 +30,7 @@ The main method from this module is get_regular_expressions.
 
 from __future__ import print_function
 
+import six
 import os
 import re
 import sys
@@ -46,11 +47,12 @@ from six.moves import cPickle, urllib_error
 from werkzeug.local import LocalProxy
 
 from .errors import TaxonomyError
+from .utils import get_clock
 
-_contains_digit = re.compile("\d")
-_starts_with_non = re.compile("(?i)^non[a-z]")
-_starts_with_anti = re.compile("(?i)^anti[a-z]")
-_split_by_punctuation = re.compile("(\W+)")
+_contains_digit = re.compile(r"\d")
+_starts_with_non = re.compile(r"(?i)^non[a-z]")
+_starts_with_anti = re.compile(r"(?i)^anti[a-z]")
+_split_by_punctuation = re.compile(r"(\W+)")
 
 _CACHE = {}
 
@@ -423,7 +425,7 @@ class KeywordToken(object):
                         self.short_id)
                 )
             else:
-                self.compositeof = map(lambda x: x[1], component_positions)
+                self.compositeof = [x[1] for x in component_positions]
 
     def refreshCompositeOf(self, single_keywords, composite_keywords,
                            store=None, namespace=None):
@@ -532,7 +534,7 @@ class KeywordToken(object):
             elif self._composite:
                 return self.concept.replace(':', ',')
             # default action
-        return self.concept.encode('utf8')
+        return six.ensure_text(self.concept.encode('utf8'))
 
     def output(self, spires=False):
         """Return string representation with spires value."""
@@ -571,7 +573,7 @@ def _build_cache(source_file, skip_cache=False):
             raise TaxonomyError("Cache directory does not exist"
                                 " (and could not be created): %s" % cache_dir)
 
-    timer_start = time.clock()
+    timer_start = get_clock()
 
     namespace = None
     single_keywords, composite_keywords = {}, {}
@@ -631,7 +633,7 @@ def _build_cache(source_file, skip_cache=False):
     current_app.logger.debug(
         "Building taxonomy... %d terms built in %.1f sec." %
         (len(single_keywords) + len(composite_keywords),
-         time.clock() - timer_start))
+         get_clock() - timer_start))
 
     current_app.logger.info(
         "Total count of single keywords: %d "
@@ -776,7 +778,7 @@ def _get_cache(cache_file, source_file=None):
         of the cache
     :return: (single_keywords, composite_keywords).
     """
-    timer_start = time.clock()
+    timer_start = get_clock()
 
     filestream = open(cache_file, "rb")
     try:
@@ -826,7 +828,7 @@ def _get_cache(cache_file, source_file=None):
     current_app.logger.debug(
         "%d terms read in %.1f sec." %
         (len(single_keywords) + len(composite_keywords),
-         time.clock() - timer_start)
+         get_clock() - timer_start)
     )
 
     return (single_keywords, composite_keywords)

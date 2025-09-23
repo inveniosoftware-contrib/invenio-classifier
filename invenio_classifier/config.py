@@ -159,7 +159,7 @@ CLASSIFIER_SYMBOLS = {
 }
 """The punctuation that can be found at the end of a word."""
 
-CLASSIFIER_WORD_WRAP = "[^\w-]%s[^\w-]"
+CLASSIFIER_WORD_WRAP = r"[^\w-]%s[^\w-]"
 """Regular expression to wrap words."""
 
 CLASSIFIER_VALID_SEPARATORS = (

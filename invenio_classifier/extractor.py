@@ -95,13 +95,11 @@ def text_lines_from_local_file(document, remote=False):
                 )
             out = subprocess.Popen(["pdftotext", "-q", "-enc", "UTF-8",
                                     document, "-"],
-                                   universal_newlines=True,
-                                   stdout=subprocess.PIPE)
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE)
             (stdoutdata, stderrdata) = out.communicate()
-            lines = stdoutdata.splitlines()
-            if not isinstance(stdoutdata, six.text_type):
-                # We are in Python 2. We need to cast to unicode
-                lines = [line.decode('utf8', 'replace') for line in lines]
+            lines = six.ensure_text(stdoutdata)
+            lines = lines.splitlines()
         else:
             filestream = codecs.open(document, "r", encoding="utf8",
                                      errors="replace")
@@ -242,9 +240,9 @@ def pdftotext_conversion_is_bad(txtlines):
     # Numbers of 'words' and 'whitespaces' found in document:
     numWords = numSpaces = 0
     # whitespace character pattern:
-    p_space = re.compile(unicode(r'(\s)'), re.UNICODE)
+    p_space = re.compile(six.text_type(r'(\s)'), re.UNICODE)
     # non-whitespace 'word' pattern:
-    p_noSpace = re.compile(unicode(r'(\S+)'), re.UNICODE)
+    p_noSpace = re.compile(six.text_type(r'(\S+)'), re.UNICODE)
     for txtline in txtlines:
         numWords = numWords + len(p_noSpace.findall(txtline.strip()))
         numSpaces = numSpaces + len(p_space.findall(txtline.strip()))

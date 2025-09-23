@@ -31,6 +31,7 @@ from __future__ import print_function
 import argparse
 import re
 import sys
+from six import iteritems
 
 import mock
 import pkg_resources
@@ -79,7 +80,7 @@ def parse_pip_file(path):
                     # recursive file command
                     splitted = re.split('-r\\s+', line)
                     subrdev, subrnormal, substuff = parse_pip_file(splitted[1])
-                    for k, v in subrdev.iteritems():
+                    for k, v in iteritems(subrdev):
                         if k not in rdev:
                             rdev[k] = v
                     rnormal.extend(subrnormal)

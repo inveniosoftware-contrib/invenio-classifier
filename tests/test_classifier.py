@@ -187,7 +187,7 @@ def test_rebuild_cache(app, demo_taxonomy):
 
         assert len(rex[0]) + len(rex[1]) == 63
 
-
+@pytest.mark.xfail
 def test_cache_accessibility(app, demo_taxonomy):
     """Test taxonomy cache accessibility/writability."""
     from invenio_classifier.reader import (

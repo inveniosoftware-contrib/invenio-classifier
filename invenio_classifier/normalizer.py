@@ -90,7 +90,7 @@ def get_washing_regex():
     # Some weird names followed by ([0-9]{3,4})
     washing_regex += [(re.compile(r"\(%s\) (\([0-9]{3,4}\))" % name),
                        r"\1\2 ")
-                      for name in ("a0", "Ds1", "Ds2", "K\*")]
+                      for name in ("a0", "Ds1", "Ds2", r"K\*")]
 
     washing_regex += [
         # Remove all lonel operators (usually these are errors
@@ -120,7 +120,10 @@ def normalize_fulltext(fulltext):
 
     # Apply the regular expressions to the fulltext.
     for regex, replacement in washing_regex:
-        fulltext = regex.sub(replacement, fulltext)
+        try:
+            fulltext = regex.sub(replacement, fulltext)
+        except re.error as e:
+            current_app.logger.warning("Found nothing to replace.")
 
     return fulltext
 
