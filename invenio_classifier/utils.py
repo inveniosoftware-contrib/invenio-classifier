@@ -20,8 +20,9 @@
 """Contains utils for classifier."""
 
 import re
-
+import sys
 import six
+import time
 
 
 def encode_for_xml(text, wash=False, xml_version='1.0', quote=False):
@@ -70,7 +71,13 @@ def wash_for_xml(text, xml_version='1.0'):
     """
     if xml_version == '1.0':
         return RE_ALLOWED_XML_1_0_CHARS.sub(
-            '', unicode(text, 'utf-8')).encode('utf-8')
+            '', six.text_type(text, 'utf-8')).encode('utf-8')
     else:
         return RE_ALLOWED_XML_1_1_CHARS.sub(
-            '', unicode(text, 'utf-8')).encode('utf-8')
+            '', six.text_type(text, 'utf-8')).encode('utf-8')
+
+
+def get_clock():
+    if sys.version_info < (3, 3):
+        return time.clock()
+    return time.perf_counter()

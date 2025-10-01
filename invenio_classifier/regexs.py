@@ -21,9 +21,11 @@
 
 from __future__ import unicode_literals
 
+import sys
 import re
 from datetime import datetime
 
+import six
 from six import iteritems
 
 # Sep
@@ -38,7 +40,7 @@ re_pos_year_num = r'(?:19|20)\d{2}'
 re_pos_year = r'(?P<year>(' \
     + r'\s' + re_pos_year_num + r'\s' \
     + r'|' \
-    + r'\(' + re_pos_year_num + '\)' \
+    + r'\(' + re_pos_year_num + r'\)' \
     + r'))'
 # e.g. LAT2007
 re_pos_volume = (r'(?P<volume_name>\w{1,10})' +
@@ -337,7 +339,7 @@ series_tag = r'(?P<series>(?:[A-H]|I{1,3}V?|VI{0,3}))?'
 page_tag = r'\<cds\.PG\>(?P<pg>[^<]+)\<\/cds\.PG\>'
 re_recognised_numeration_for_title_plus_series = re.compile(
     r'^\s*[\.,]?\s*(?:Ser\.\s*)?' + series_tag + r'\s*:?\s*' + vol_tag +
-    u'\s*(?: ' + year_tag + u')?\s*(?: ' + page_tag + u')', re.UNICODE)
+    r'\s*(?: ' + year_tag + r')?\s*(?: ' + page_tag + r')', re.UNICODE)
 
 # Another numeration pattern. This one is designed to match marked-up
 # numeration that is essentially an IBID, but without the word "IBID". E.g.:
@@ -436,10 +438,10 @@ re_volume_sub_number_opt = u'(?:' + re_sep + u'(?P<vol_sub>' + \
 # Volume
 re_volume_prefix = r"(?:[Vv]o?l?\.?|[Nn][oO°]\.?)"  # Optional Vol./No.
 re_volume_suffix = r"(?:\s*\(\d{1,2}(?:-\d)?\))?"
-re_volume_num = r"\d+|" + "(?:(?<!\w)" + re_roman_numbers + "(?!\w))"
+re_volume_num = r"\d+|" + r"(?:(?<!\w)" + re_roman_numbers + r"(?!\w))"
 re_volume_id = r"(?P<vol>(?:(?:[A-Za-z]\s*[,\s:-]?\s*)?(?P<vol_num>%(volume_num)s))|(?:(?P<vol_num_alt>%(volume_num)s)(?:[A-Za-z]))|(?:(?:[A-Za-z]\s?)?(?P<vol_num_alt2>\d+)\s*\-\s*(?:[A-Za-z]\s?)?\d+))" % {'volume_num': re_volume_num}  # noqa
 re_volume_check = r"(?<![\/\d])"
-re_volume = r"\b" + u"(?:" + re_volume_prefix + u")?\s*" + re_volume_check + \
+re_volume = r"\b" + u"(?:" + re_volume_prefix + r")?\s*" + re_volume_check + \
     re_volume_id + re_volume_suffix
 
 # Month
@@ -708,11 +710,11 @@ def get_reference_section_title_patterns():
               u'bibliographie',
               u'citations',
               u'literaturverzeichnis']
-    sect_marker = u'^\s*([\[\-\{\(])?\s*' \
-                  u'((\w|\d){1,5}([\.\-\,](\w|\d){1,5})?\s*' \
-                  u'[\.\-\}\)\]]\s*)?' \
-                  u'(?P<title>'
-    sect_marker1 = u'^(\d){1,3}\s*(?P<title>'
+    sect_marker = six.text_type(r'^\s*([\[\-\{\(])?\s*' \
+                  r'((\w|\d){1,5}([\.\-\,](\w|\d){1,5})?\s*' \
+                  r'[\.\-\}\)\]]\s*)?' \
+                  r'(?P<title>',)
+    sect_marker1 = six.text_type(r'^(\d){1,3}\s*(?P<title>')
     line_end = r'(\s*s\s*e\s*c\s*t\s*i\s*o\s*n\s*)?)([\)\}\]])?' \
         r'($|\s*[\[\{\(\<]\s*[1a-z]\s*[\}\)\>\]]|\:$)'
 
@@ -741,7 +743,7 @@ def get_reference_line_numeration_marker_patterns(prefix=u''):
     :return: (list) of compiled regex patterns.
     """
     title = u""
-    if type(prefix) in (str, unicode):
+    if (sys.version_info[0] >= 3 and type(prefix) is str) or (sys.version_info[0] < 3 and type(prefix) in (str, unicode)):
         title = prefix
     g_name = u'(?P<mark>'
     g_close = u')'

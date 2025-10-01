@@ -23,8 +23,8 @@ from __future__ import print_function
 
 import re
 
-ACRONYM_BRACKETS_REGEX = re.compile("[([] ?(([a-zA-Z]\.?){2,})s? ?[)\]]")
-DOTS_REGEX = re.compile("\.")
+ACRONYM_BRACKETS_REGEX = re.compile(r"[([] ?(([a-zA-Z]\.?){2,})s? ?[)\]]")
+DOTS_REGEX = re.compile(r"\.")
 MAXIMUM_LEVEL = 2
 STOPLIST = ("and", "of", "for", "the", "to", "do", "de", "theory",
             "model", "radiation", "scheme", "representation")
@@ -43,10 +43,10 @@ def get_acronyms(fulltext):
         potential_expansion = fulltext[m.start() - 80:m.start()].replace("\n",
                                                                          " ")
         # Strip
-        potential_expansion = re.sub("(\W).(\W)", "\1\2", potential_expansion)
-        potential_expansion = re.sub("(\w)\(s\)\W", "\1", potential_expansion)
-        potential_expansion = re.sub("""[^\w'"]+$""", "", potential_expansion)
-        potential_expansion = re.sub("[[(].+[\])]", "", potential_expansion)
+        potential_expansion = re.sub(r"(\W).(\W)", "\1\2", potential_expansion)
+        potential_expansion = re.sub(r"(\w)\(s\)\W", "\1", potential_expansion)
+        potential_expansion = re.sub(r"""[^\w'"]+$""", "", potential_expansion)
+        potential_expansion = re.sub(r"[[(].+[\])]", "", potential_expansion)
         potential_expansion = re.sub(" {2,}", " ", potential_expansion)
 
         # LEVEL 0: expansion between quotes
@@ -61,18 +61,18 @@ def get_acronyms(fulltext):
 
             pattern = ""
             for char in acronym[:-1]:
-                pattern += "%s\w+\W*" % char
-            pattern += "%s\w+" % acronym[-1]
+                pattern += r"%s\w+\W*" % char
+            pattern += r"%s\w+" % acronym[-1]
 
             if re.search(pattern, match.group(1), re.I) is not None:
                 _add_expansion_to_acronym_dict(acronym, match.group(1), 0,
                                                acronyms)
             continue
 
-        pattern = "\W("
+        pattern = r"\W("
         for char in acronym[:-1]:
-            pattern += "%s\w+\W+" % char
-        pattern += "%s\w+)$" % acronym[-1]
+            pattern += r"%s\w+\W+" % char
+        pattern += r"%s\w+)$" % acronym[-1]
 
         # LEVEL 1: expansion with uppercase initials
         match = re.search(pattern, potential_expansion)
@@ -95,7 +95,7 @@ def get_acronyms(fulltext):
 
         match = re.search(pattern, potential_expansion_stripped, re.I)
         if match is not None:
-            first_expansion_word = re.search("\w+", match.group(1)).group()
+            first_expansion_word = re.search(r"\w+", match.group(1)).group()
             start = potential_expansion.lower().rfind(first_expansion_word)
             _add_expansion_to_acronym_dict(
                 acronym, potential_expansion[start:],
@@ -218,7 +218,7 @@ def get_acronyms(fulltext):
 
 def _words(expression):
     """Return a list of words of the expression."""
-    return re.findall("\w+", expression.lower())
+    return re.findall(r"\w+", expression.lower())
 
 
 def _add_expansion_to_acronym_dict(acronym, expansion, level, dictionary):
@@ -230,7 +230,7 @@ def _add_expansion_to_acronym_dict(acronym, expansion, level, dictionary):
     if len(acronym) >= len(expansion) or acronym in expansion:
         return
 
-    for punctuation in re.findall("\W", expansion):
+    for punctuation in re.findall(r"\W", expansion):
         # The expansion contains non-basic punctuation. It is probable
         # that it is invalid. Discard it.
         if punctuation not in (",", " ", "-"):

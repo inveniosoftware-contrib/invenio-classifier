@@ -55,7 +55,7 @@ def output_keywords_for_sources(
         line_nb = len(text_lines)
         word_nb = 0
         for line in text_lines:
-            word_nb += len(re.findall("\S+", line))
+            word_nb += len(re.findall(r"\S+", line))
 
         current_app.logger.info(
             "Remote file has %d lines and %d words.".format(
@@ -193,7 +193,6 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
     else:
         # Filter out the "nonstandalone" keywords
         single_keywords = clean_before_output(single_keywords)
-
     return get_keywords_output(
         single_keywords=single_keywords,
         composite_keywords=composite_keywords,
