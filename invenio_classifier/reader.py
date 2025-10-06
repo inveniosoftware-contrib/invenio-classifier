@@ -41,13 +41,24 @@ from datetime import datetime, timedelta
 
 import rdflib
 import requests
-from flask import current_app
 from six import iteritems, text_type
 from six.moves import cPickle, urllib_error
-from werkzeug.local import LocalProxy
 
 from .errors import TaxonomyError
 from .utils import get_clock
+
+from .config import (CLASSIFIER_WORKDIR,
+                     CACHE_PATH,
+                     CLASSIFIER_INVARIABLE_WORDS,
+                     CLASSIFIER_EXCEPTIONS,
+                     CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS,
+                     CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS,
+                     CLASSIFIER_SEPARATORS,
+                     CLASSIFIER_SYMBOLS,
+                     CLASSIFIER_WORD_WRAP)
+import logging
+
+logger = logging.getLogger(__name__)
 
 _contains_digit = re.compile(r"\d")
 _starts_with_non = re.compile(r"(?i)^non[a-z]")
@@ -77,18 +88,18 @@ def get_cache(taxonomy_id):
 
         # if source exists and is newer than the cache hold in memory
         if os.path.isfile(onto_path) and os.path.getmtime(onto_path) > ctime:
-            current_app.logger.info(
+            logger.info(
                 'Forcing taxonomy rebuild as cached version is newer/updated.'
             )
             return {}  # force cache rebuild
 
         # if cache exists and is newer than the cache hold in memory
         if os.path.isfile(cache_path) and os.path.getmtime(cache_path) > ctime:
-            current_app.logger.info(
+            logger.info(
                 'Forcing taxonomy rebuild as source file is newer/updated.'
             )
             return {}
-        current_app.logger.info('Taxonomy retrieved from cache')
+        logger.info('Taxonomy retrieved from cache')
         return taxonomy
     return {}
 
@@ -111,7 +122,7 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
                             % taxonomy_name)
 
     cache_path = _get_cache_path(onto_name)
-    current_app.logger.debug(
+    logger.debug(
         'Taxonomy discovered, now we load it '
         '(from cache: %s, onto_path: %s, cache_path: %s)'
         % (not no_cache, onto_path, cache_path)
@@ -120,12 +131,12 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
     if os.access(cache_path, os.R_OK):
         if os.access(onto_path, os.R_OK):
             if rebuild or no_cache:
-                current_app.logger.debug(
+                logger.debug(
                     "Cache generation was manually forced.")
                 return _build_cache(onto_path, skip_cache=no_cache)
         else:
             # ontology file not found. Use the cache instead.
-            current_app.logger.warning(
+            logger.warning(
                 "The ontology couldn't be located. However "
                 "a cached version of it is available. Using it as a "
                 "reference."
@@ -135,14 +146,14 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
         if (os.path.getmtime(cache_path) >
                 os.path.getmtime(onto_path)):
             # Cache is more recent than the ontology: use cache.
-            current_app.logger.debug(
+            logger.debug(
                 "Normal situation, cache is older than ontology,"
                 " so we load it from cache"
             )
             return _get_cache(cache_path, source_file=onto_path)
         else:
             # Ontology is more recent than the cache: rebuild cache.
-            current_app.logger.warning(
+            logger.warning(
                 "Cache '%s' is older than '%s'. "
                 "We will rebuild the cache" %
                 (cache_path, onto_path)
@@ -156,9 +167,9 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
             raise TaxonomyError('We cannot read/write into: %s. '
                                 'Aborting!' % cache_path)
         elif not no_cache and os.path.exists(cache_path):
-            current_app.logger.warning(
+            logger.warning(
                 'Cache %s exists, but is not readable!' % cache_path)
-        current_app.logger.info(
+        logger.info(
             "Cache not available. Building it now: %s" % onto_path)
         return _build_cache(onto_path, skip_cache=no_cache)
 
@@ -180,7 +191,7 @@ def _get_remote_ontology(onto_url, time_difference=None):
         return False
 
     dl_dir = os.path.join(
-        current_app.config["CLASSIFIER_WORKDIR"] or tempfile.gettempdir(),
+        CLASSIFIER_WORKDIR or tempfile.gettempdir(),
         "classifier"
     )
     if not os.path.exists(dl_dir):
@@ -193,21 +204,21 @@ def _get_remote_ontology(onto_url, time_difference=None):
     except OSError:
         # The local file does not exist. Download the ontology.
         download = True
-        current_app.logger.info("The local ontology could not be found.")
+        logger.info("The local ontology could not be found.")
     else:
         local_modif_time = datetime(*time.gmtime(local_modif_seconds)[0:6])
         # Let's set a time delta of 1 hour and 10 minutes.
         time_difference = time_difference or timedelta(hours=1, minutes=10)
         download = remote_modif_time > local_modif_time + time_difference
         if download:
-            current_app.logger.info(
+            logger.info(
                 "The remote ontology '{0}' is more recent "
                 "than the local ontology.".format(onto_url)
             )
 
     if download:
         if not _download_ontology(onto_url, local_file):
-            current_app.logger.warning(
+            logger.warning(
                 "Error downloading the ontology from: {0}".format(onto_url)
             )
 
@@ -255,21 +266,21 @@ def _discover_ontology(ontology_path):
     possible_patterns = [last_part, last_part.lower()]
     if not last_part.endswith('.rdf'):
         possible_patterns.append(last_part + '.rdf')
-    places = [os.path.join(current_app.instance_path, "classifier"),
+    places = [os.path.join(CACHE_PATH, "classifier"),
               os.path.abspath('.'),
               os.path.join(os.path.dirname(__file__), "classifier")]
 
-    workdir = current_app.config.get('CLASSIFIER_WORKDIR')
+    workdir = CLASSIFIER_WORKDIR
     if workdir:
         places.append(workdir)
 
-    current_app.logger.debug(
+    logger.debug(
         "Searching for taxonomy using string: %s" % last_part)
-    current_app.logger.debug("Possible patterns: %s" % possible_patterns)
+    logger.debug("Possible patterns: %s" % possible_patterns)
     for path in places:
         try:
             if os.path.isdir(path):
-                current_app.logger.debug("Listing: %s" % path)
+                logger.debug("Listing: %s" % path)
                 for filename in os.listdir(path):
                     for pattern in possible_patterns:
                         filename_lc = filename.lower()
@@ -278,11 +289,11 @@ def _discover_ontology(ontology_path):
                             filepath = os.path.abspath(os.path.join(path,
                                                                     filename))
                             if (os.access(filepath, os.R_OK)):
-                                current_app.logger.debug(
+                                logger.debug(
                                     "Found taxonomy at: {0}".format(filepath))
                                 return filepath
                             else:
-                                current_app.logger.warning(
+                                logger.warning(
                                     'Found taxonomy at: {0}, but it is'
                                     ' not readable. Continue '
                                     'searching...'.format(
@@ -290,11 +301,11 @@ def _discover_ontology(ontology_path):
                                     )
                                 )
         except OSError as os_error_msg:
-            current_app.logger.exception(
+            logger.exception(
                 'OS Error when listing path "{0}": {1}'.format(
                     str(path), str(os_error_msg))
             )
-    current_app.logger.debug(
+    logger.debug(
         "No taxonomy with pattern '{0}' found".format(ontology_path))
 
 
@@ -364,7 +375,7 @@ class KeywordToken(object):
                                                    namespace["prefLabel"],
                                                    any=True))
                 except KeyError:
-                    current_app.logger.warning(
+                    logger.warning(
                         "Keyword with subject {0} has no prefLabel. "
                         "We use raw name".format(self.short_id)
                     )
@@ -419,7 +430,7 @@ class KeywordToken(object):
                                             strlabel))
             component_positions.sort()
             if not component_positions:
-                current_app.logger.error(
+                logger.error(
                     "Keyword is marked as composite, "
                     "but no composite components refs found: {0}".format(
                         self.short_id)
@@ -467,7 +478,7 @@ class KeywordToken(object):
                 # the composites will be empty
                 # (better than to have confusing, partial matches)
                 self.compositeof = []
-                current_app.logger.error(err)
+                logger.error(err)
 
     def isComposite(self):
         """Return value of _composite."""
@@ -557,7 +568,7 @@ def _build_cache(source_file, skip_cache=False):
     store = rdflib.ConjunctiveGraph()
 
     if skip_cache:
-        current_app.logger.info("You requested not to save the cache to disk.")
+        logger.info("You requested not to save the cache to disk.")
     else:
         cache_path = _get_cache_path(source_file)
         cache_dir = os.path.dirname(cache_path)
@@ -579,7 +590,7 @@ def _build_cache(source_file, skip_cache=False):
     single_keywords, composite_keywords = {}, {}
 
     try:
-        current_app.logger.info(
+        logger.info(
             "Building RDFLib's conjunctive graph from: %s" % source_file)
         try:
             store.parse(source_file)
@@ -590,13 +601,13 @@ def _build_cache(source_file, skip_cache=False):
                 store.parse("file:///" + source_file)
 
     except rdflib.exceptions.Error as e:
-        current_app.logger.exception("Serious error reading RDF file")
+        logger.exception("Serious error reading RDF file")
         raise
 
     except (xml.sax.SAXParseException, ImportError) as e:
         # File is not a RDF file. We assume it is a controlled vocabulary.
-        current_app.logger.error(e)
-        current_app.logger.warning("The ontology file is probably not a valid RDF file. \
+        logger.error(e)
+        logger.warning("The ontology file is probably not a valid RDF file. \
             Assuming it is a controlled vocabulary file.")
 
         filestream = open(source_file, "r")
@@ -608,7 +619,7 @@ def _build_cache(source_file, skip_cache=False):
             raise TaxonomyError('The ontology file is not well formated')
 
     else:  # ok, no exception happened
-        current_app.logger.info("Now building cache of keywords")
+        logger.info("Now building cache of keywords")
         # File is a RDF file.
         namespace = rdflib.Namespace("http://www.w3.org/2004/02/skos/core#")
 
@@ -630,16 +641,16 @@ def _build_cache(source_file, skip_cache=False):
     cached_data["composite"] = composite_keywords
     cached_data["creation_time"] = time.gmtime()
     cached_data["version_info"] = {'rdflib': rdflib.__version__}
-    current_app.logger.debug(
+    logger.debug(
         "Building taxonomy... %d terms built in %.1f sec." %
         (len(single_keywords) + len(composite_keywords),
          get_clock() - timer_start))
 
-    current_app.logger.info(
+    logger.info(
         "Total count of single keywords: %d "
         % len(single_keywords)
     )
-    current_app.logger.info(
+    logger.info(
         "Total count of composite keywords: %d "
         % len(composite_keywords)
     )
@@ -647,7 +658,7 @@ def _build_cache(source_file, skip_cache=False):
     if not skip_cache:
         cache_path = _get_cache_path(source_file)
         cache_dir = os.path.dirname(cache_path)
-        current_app.logger.debug("Writing the cache into: %s" % cache_path)
+        logger.debug("Writing the cache into: %s" % cache_path)
         # test again, it could have changed
         if os.access(cache_dir, os.R_OK):
             if os.access(cache_dir, os.W_OK):
@@ -657,12 +668,12 @@ def _build_cache(source_file, skip_cache=False):
                     filestream = open(cache_path, "wb")
                 except IOError as msg:
                     # Impossible to write the cache.
-                    current_app.logger.error(
+                    logger.error(
                         "Impossible to write cache to '%s'."
                         % cache_path)
-                    current_app.logger.error(msg)
+                    logger.error(msg)
                 else:
-                    current_app.logger.debug(
+                    logger.debug(
                         "Writing cache to file %s" % cache_path)
                     cPickle.dump(cached_data, filestream, 1)
                 if filestream:
@@ -744,21 +755,21 @@ def _convert_word(word):
         return _capitalize_first_letter(out)
 
     # A few invariable words.
-    if word in current_app.config["CLASSIFIER_INVARIABLE_WORDS"]:
+    if word in CLASSIFIER_INVARIABLE_WORDS:
         return _capitalize_first_letter(word)
 
     # Some exceptions that would not produce good results with the set of
     # general_regular_expressions.
-    regexes = current_app.config["CLASSIFIER_EXCEPTIONS"]
+    regexes = CLASSIFIER_EXCEPTIONS
     if word in regexes:
         return _capitalize_first_letter(regexes[word])
 
-    regexes = current_app.config["CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS"]
+    regexes = CLASSIFIER_UNCHANGE_REGULAR_EXPRESSIONS
     for regex in regexes:
         if regex.search(word) is not None:
             return _capitalize_first_letter(word)
 
-    regexes = current_app.config["CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS"]
+    regexes = CLASSIFIER_GENERAL_REGULAR_EXPRESSIONS
     for regex, replacement in regexes:
         stemmed = regex.sub(replacement, word)
         if stemmed != word:
@@ -788,7 +799,7 @@ def _get_cache(cache_file, source_file=None):
             raise KeyError
     except (cPickle.UnpicklingError, ImportError,
             AttributeError, DeprecationWarning, EOFError):
-        current_app.logger.warning(
+        logger.warning(
             "The existing cache in %s is not readable. "
             "Removing and rebuilding it." % cache_file
         )
@@ -796,7 +807,7 @@ def _get_cache(cache_file, source_file=None):
         os.remove(cache_file)
         return _build_cache(source_file)
     except KeyError:
-        current_app.logger.warning(
+        logger.warning(
             "The existing cache %s is not up-to-date. "
             "Removing and rebuilding it." % cache_file
         )
@@ -805,7 +816,7 @@ def _get_cache(cache_file, source_file=None):
         if source_file and os.path.exists(source_file):
             return _build_cache(source_file)
         else:
-            current_app.logger.error(
+            logger.error(
                 "The cache contains obsolete data (and it was deleted), "
                 "however I can't build a new cache, the source does not "
                 "exist or is inaccessible! - %s" % source_file
@@ -820,12 +831,12 @@ def _get_cache(cache_file, source_file=None):
     for kw in composite_keywords.values():
         kw.refreshCompositeOf(single_keywords, composite_keywords)
 
-    current_app.logger.debug(
+    logger.debug(
         "Retrieved taxonomy from cache %s created on %s" %
         (cache_file, time.asctime(cached_data["creation_time"]))
     )
 
-    current_app.logger.debug(
+    logger.debug(
         "%d terms read in %.1f sec." %
         (len(single_keywords) + len(composite_keywords),
          get_clock() - timer_start)
@@ -842,7 +853,7 @@ def _get_cache_path(source_file):
     """
     local_name = os.path.basename(source_file)
     cache_name = local_name + ".db"
-    cache_dir = os.path.join(current_app.instance_path, "classifier")
+    cache_dir = os.path.join(CACHE_PATH, "classifier")
 
     if not os.path.isdir(cache_dir):
         os.makedirs(cache_dir)
@@ -860,7 +871,7 @@ def _get_last_modification_date(url):
 
 def _download_ontology(url, local_file):
     """Download the ontology and stores it in CLASSIFIER_WORKDIR."""
-    current_app.logger.debug(
+    logger.debug(
         "Copying remote ontology '%s' to file '%s'." % (url, local_file)
     )
     try:
@@ -870,10 +881,10 @@ def _download_ontology(url, local_file):
                 for chunk in request.iter_content(chunk_size):
                     f.write(chunk)
     except IOError as e:
-        current_app.logger.exception(e)
+        logger.exception(e)
         return False
     else:
-        current_app.logger.debug("Done copying.")
+        logger.debug("Done copying.")
         return True
 
 
@@ -888,13 +899,13 @@ def _get_searchable_regex(basic=None, hidden=None):
         if _is_regex(hidden_label):
             hidden_regex_dict[hidden_label] = \
                 re.compile(
-                    current_app.config["CLASSIFIER_WORD_WRAP"]
+                    CLASSIFIER_WORD_WRAP
                     % hidden_label[1:-1]
             )
         else:
             pattern = _get_regex_pattern(hidden_label)
             hidden_regex_dict[hidden_label] = re.compile(
-                current_app.config["CLASSIFIER_WORD_WRAP"] % pattern
+                CLASSIFIER_WORD_WRAP % pattern
             )
 
     # We check if the basic label (preferred or alternative) is matched
@@ -904,7 +915,7 @@ def _get_searchable_regex(basic=None, hidden=None):
     for label in basic:
         pattern = _get_regex_pattern(label)
         regex_dict[label] = re.compile(
-            current_app.config["CLASSIFIER_WORD_WRAP"] % pattern
+            CLASSIFIER_WORD_WRAP % pattern
         )
 
     # Merge both dictionaries.
@@ -932,12 +943,12 @@ def _get_regex_pattern(label):
                 # it as a symbol.
                 parts[index] = _convert_punctuation(
                     parts[index],
-                    current_app.config["CLASSIFIER_SYMBOLS"]
+                    CLASSIFIER_SYMBOLS 
                 )
             else:
                 parts[index] = _convert_punctuation(
                     parts[index],
-                    current_app.config["CLASSIFIER_SEPARATORS"]
+                    CLASSIFIER_SEPARATORS 
                 )
 
     return "".join(parts)
@@ -953,7 +964,7 @@ def check_taxonomy(taxonomy):
 
     Outputs a list of errors and warnings.
     """
-    current_app.logger.info(
+    logger.info(
         "Building graph with Python RDFLib version %s" %
         rdflib.__version__
     )
@@ -961,7 +972,7 @@ def check_taxonomy(taxonomy):
     store = rdflib.ConjunctiveGraph()
     store.parse(taxonomy)
 
-    current_app.logger.info("Graph was successfully built.")
+    logger.info("Graph was successfully built.")
 
     prefLabel = "prefLabel"
     hiddenLabel = "hiddenLabel"
@@ -995,7 +1006,7 @@ def check_taxonomy(taxonomy):
         else:
             subjects[strsubject] = components
 
-    current_app.logger.info("Taxonomy contains %s concepts." % len(subjects))
+    logger.info("Taxonomy contains %s concepts." % len(subjects))
 
     no_prefLabel = []
     multiple_prefLabels = []

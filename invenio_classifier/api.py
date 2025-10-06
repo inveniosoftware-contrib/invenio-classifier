@@ -24,7 +24,11 @@ from __future__ import print_function
 import os
 import re
 
-from flask import current_app
+from .config import CLASSIFIER_DEFAULT_OUTPUT_NUMBER
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .engine import clean_before_output, extract_abbreviations, \
     extract_author_keywords, extract_composite_keywords, \
@@ -43,7 +47,7 @@ def output_keywords_for_sources(
         **kwargs):
     """Output the keywords for each source in sources."""
     if output_limit is None:
-        output_limit = current_app.config['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+        output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
     # Inner function which does the job and it would be too much work to
     # refactor the call (and it must be outside the loop, before it did
@@ -57,7 +61,7 @@ def output_keywords_for_sources(
         for line in text_lines:
             word_nb += len(re.findall(r"\S+", line))
 
-        current_app.logger.info(
+        logger.info(
             "Remote file has %d lines and %d words.".format(
                 line_nb, word_nb
             )
@@ -78,7 +82,7 @@ def output_keywords_for_sources(
 
     # Get the fulltext for each source.
     for entry in input_sources:
-        current_app.logger.info("Trying to read input file %s." % entry)
+        logger.info("Trying to read input file %s." % entry)
         text_lines = None
         source = ""
         if os.path.isdir(entry):
@@ -116,9 +120,9 @@ def get_keywords_from_local_file(
     Arguments and output are the same as for :see: get_keywords_from_text().
     """
     if output_limit is None:
-        output_limit = current_app.config['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+        output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
-    current_app.logger.info(
+    logger.info(
         "Analyzing keywords for local file %s." % local_file)
     text_lines = text_lines_from_local_file(local_file)
 
@@ -159,7 +163,7 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
         for other output modes it returns formatted string
     """
     if output_limit is None:
-        output_limit = current_app.config['CLASSIFIER_DEFAULT_OUTPUT_NUMBER']
+        output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
     cache = get_cache(taxonomy_name)
     if not cache:

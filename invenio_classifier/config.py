@@ -22,6 +22,7 @@
 from __future__ import unicode_literals
 
 import re
+import os
 
 try:
     from shutil import which
@@ -184,3 +185,5 @@ CLASSIFIER_AUTHOR_KW_END = (
 )
 
 CLASSIFIER_AUTHOR_KW_SEPARATION = re.compile(" ?; ?| ?, ?| ?- | ?· ")
+
+CACHE_PATH = os.getenv("CLASSIFIER_CACHE_PATH", "/tmp")

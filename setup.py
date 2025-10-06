@@ -39,6 +39,7 @@ tests_require = [
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
     'pytest>=2.8.0',
+    'mock>=3.0.5'
 ]
 
 extras_require = {
@@ -57,7 +58,6 @@ setup_requires = [
 ]
 
 install_requires = [
-    'Flask>=0.11.1',
     'rdflib>=4.2.1',
     'six>=1.10.0',
     'requests>=2.9.1'

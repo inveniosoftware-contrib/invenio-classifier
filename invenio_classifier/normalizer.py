@@ -29,11 +29,13 @@ references section and to replace Unicode characters.
 
 import re
 
-from flask import current_app
 from six import iteritems
 
 from .find import find_end_of_reference_section, find_reference_section
 
+import logging
+
+logger = logging.getLogger(__name__)
 _washing_regex = []
 
 
@@ -123,7 +125,7 @@ def normalize_fulltext(fulltext):
         try:
             fulltext = regex.sub(replacement, fulltext)
         except re.error as e:
-            current_app.logger.warning("Found nothing to replace.")
+            logger.warning("Found nothing to replace.")
 
     return fulltext
 
@@ -138,7 +140,7 @@ def cut_references(text_lines):
                                             ref_sect_start["marker_pattern"])
         del text_lines[start:end + 1]
     else:
-        current_app.logger.warning("Found no references to remove.")
+        logger.warning("Found no references to remove.")
         return text_lines
 
     return text_lines
@@ -651,6 +653,6 @@ def _replace_greek_characters(line):
         try:
             line = line.replace(greek_char, replacement)
         except UnicodeDecodeError:
-            current_app.logger.exception("Unicode decoding error.")
+            logger.exception("Unicode decoding error.")
             return ""
     return line

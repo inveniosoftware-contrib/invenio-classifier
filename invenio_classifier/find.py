@@ -21,7 +21,9 @@
 
 import re
 
-from flask import current_app
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .regexs import get_post_reference_section_keyword_patterns, \
     get_post_reference_section_title_patterns, \
@@ -509,10 +511,10 @@ def get_reference_section_beginning(fulltext):
                     sect_start['how_found_start'] = 4
 
     if sect_start:
-        current_app.logger.debug('* title %r' % sect_start['title_string'])
-        current_app.logger.debug('* marker %r' % sect_start['marker'])
-        current_app.logger.debug('* title_marker_same_line %s'
+        logger.debug('* title %r' % sect_start['title_string'])
+        logger.debug('* marker %r' % sect_start['marker'])
+        logger.debug('* title_marker_same_line %s'
                                  % sect_start['title_marker_same_line'])
     else:
-        current_app.logger.debug('* could not find references section')
+        logger.debug('* could not find references section')
     return sect_start

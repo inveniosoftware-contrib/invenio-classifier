@@ -31,9 +31,13 @@ import re
 import subprocess
 
 import six
-from flask import current_app
+
 
 from .errors import IncompatiblePDF2Text
+from .config import CLASSIFIER_PATH_GFILE, CLASSIFIER_PATH_PDFTOTEXT
+import logging
+
+logger = logging.getLogger(__name__)
 
 _ONE_WORD = re.compile("[A-Za-z]{2,}", re.U)
 
@@ -49,10 +53,10 @@ def is_pdf(document):
             if stdoutdata:
                 return True
         except IOError as ex1:
-            current_app.logger.error("Unable to read from file %s. (%s)"
+            logger.error("Unable to read from file %s. (%s)"
                                             % (document, ex1.strerror))
     else:
-        current_app.logger.warning(
+        logger.warning(
             "GNU file was not found on the system. "
             "Switching to a weak file extension test."
         )
@@ -67,7 +71,7 @@ def is_pdf(document):
     try:
         filetype = file_output.split(":")[-1]
     except IndexError:
-        current_app.logger.error(
+        logger.error(
             "Your version of the 'file' utility seems to be unsupported."
         )
         raise IncompatiblePDF2Text('Incompatible pdftotext')
@@ -90,7 +94,7 @@ def text_lines_from_local_file(document, remote=False):
     try:
         if is_pdf(document):
             if not executable_exists("pdftotext"):
-                current_app.logger.error(
+                logger.error(
                     "pdftotext is not available on the system."
                 )
             out = subprocess.Popen(["pdftotext", "-q", "-enc", "UTF-8",
@@ -107,7 +111,7 @@ def text_lines_from_local_file(document, remote=False):
             lines = [line for line in filestream]
             filestream.close()
     except IOError as ex1:
-        current_app.logger.error("Unable to read from file %s. (%s)"
+        logger.error("Unable to read from file %s. (%s)"
                                  % (document, ex1.strerror))
         return []
 
@@ -140,7 +144,7 @@ def get_plaintext_document_body(fpath, keep_layout=False):
         # filepath OK - attempt to extract references:
         # get file type:
         cmd_pdftotext = [
-            current_app.config.get("CLASSIFIER_PATH_GFILE"), fpath
+            CLASSIFIER_PATH_GFILE, fpath
         ]
         pipe_pdftotext = subprocess.Popen(cmd_pdftotext,
                                           stdout=subprocess.PIPE)
@@ -189,10 +193,10 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
     # and footers, and for some other pattern matching.
     p_break_in_line = re.compile(r'^\s*\f(.+)$', re.UNICODE)
     # build pdftotext command:
-    cmd_pdftotext = [current_app.config.get("CLASSIFIER_PATH_PDFTOTEXT"),
+    cmd_pdftotext = [CLASSIFIER_PATH_PDFTOTEXT,
                      layout_option, "-q",
                      "-enc", "UTF-8", fpath, "-"]
-    current_app.logger.debug("* %s" % ' '.join(cmd_pdftotext))
+    logger.debug("* %s" % ' '.join(cmd_pdftotext))
     # open pipe to pdftotext:
     pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
 
@@ -211,7 +215,7 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
             doclines.append(u"\f")
             doclines.append(m_break_in_line.group(1))
 
-    current_app.logger.debug(
+    logger.debug(
         "* convert_PDF_to_plaintext found: %s lines of text" % len(doclines)
     )
 
