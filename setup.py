@@ -28,67 +28,62 @@ import os
 
 from setuptools import find_packages, setup
 
-readme = open('README.rst').read()
-history = open('CHANGES.rst').read()
+readme = open("README.rst").read()
+history = open("CHANGES.rst").read()
 
 tests_require = [
-    'check-manifest>=0.25',
-    'coverage>=4.0',
-    'isort>=4.2.2',
-    'pytest-cache>=1.0',
-    'pytest-cov>=1.8.0',
-    'pytest-pep8>=1.0.6',
-    'pytest>=2.8.0',
+    "check-manifest>=0.25",
+    "coverage>=4.0",
+    "isort>=4.2.2",
+    "pytest-cache>=1.0",
+    "pytest-cov>=1.8.0",
+    "pytest-pep8>=1.0.6",
+    "pytest>=2.8.0",
 ]
 
 extras_require = {
-    'docs': [
-        'Sphinx>=1.4.2',
+    "docs": [
+        "Sphinx>=1.4.2",
     ],
-    'tests': tests_require,
+    "tests": tests_require,
 }
 
-extras_require['all'] = []
+extras_require["all"] = []
 for reqs in extras_require.values():
-    extras_require['all'].extend(reqs)
+    extras_require["all"].extend(reqs)
 
 setup_requires = [
-    'pytest-runner>=2.6.2',
+    "pytest-runner>=2.6.2",
 ]
 
-install_requires = [
-    'Flask>=0.11.1',
-    'rdflib>=4.2.1',
-    'six>=1.10.0',
-    'requests>=2.9.1'
-]
+install_requires = ["rdflib>=4.2.1", "six>=1.10.0", "requests>=2.9.1"]
 
 packages = find_packages()
 
 
 # Get the version string. Cannot be done with import!
 g = {}
-with open(os.path.join('invenio_classifier', 'version.py'), 'rt') as fp:
+with open(os.path.join("invenio_classifier", "version.py"), "rt") as fp:
     exec(fp.read(), g)
-    version = g['__version__']
+    version = g["__version__"]
 
 setup(
-    name='invenio-classifier',
+    name="invenio-classifier",
     version=version,
     description=__doc__,
-    long_description=readme + '\n\n' + history,
-    keywords='invenio keyword classification pdf',
-    license='GPLv2',
-    author='CERN',
-    author_email='admin@inspirehep.net',
-    url='https://github.com/inveniosoftware-contrib/invenio-classifier',
+    long_description=readme + "\n\n" + history,
+    keywords="invenio keyword classification pdf",
+    license="GPLv2",
+    author="CERN",
+    author_email="admin@inspirehep.net",
+    url="https://github.com/inveniosoftware-contrib/invenio-classifier",
     packages=packages,
     zip_safe=False,
     include_package_data=True,
-    platforms='any',
+    platforms="any",
     entry_points={
-        'invenio_base.apps': [
-            'invenio_classifier = invenio_classifier:InvenioClassifier',
+        "invenio_base.apps": [
+            "invenio_classifier = invenio_classifier:InvenioClassifier",
         ],
     },
     extras_require=extras_require,
@@ -96,17 +91,17 @@ setup(
     setup_requires=setup_requires,
     tests_require=tests_require,
     classifiers=[
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Development Status :: 5 - Production/Stable',
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Development Status :: 5 - Production/Stable",
     ],
 )

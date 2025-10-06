@@ -25,7 +25,6 @@ import os
 import sys
 
 import click
-from flask import current_app
 from flask.cli import with_appcontext
 
 from .api import get_keywords_from_local_file
@@ -37,41 +36,68 @@ def classifier():
 
 
 @classifier.command()
-@click.option('-f', '--filepath',
-              help='extract keywords from this file.')
-@click.option('-k', '--taxonomy',
-              help='the taxonomy file to use.')
-@click.option('-o', '--output-mode', default="text",
-              help='choose output format (text, dict, raw, html, marcxml).')
-@click.option('-n', '--output-limit', default=20,
-              help='the limit of keywords to display.')
-@click.option('-s', '--spires', is_flag=True,
-              help='outputs keywords in the SPIRES format.')
-@click.option('-m', '--match-mode', default="full",
-              help='choose full or partial searching mode.')
-@click.option('-d', '--detect-author-keywords', is_flag=True,
-              help='detect keywords that are from the authors.')
-@click.option('-e', '--extract-acronyms', is_flag=True,
-              help='outputs a list of acronyms and expansions found.')
-@click.option('--rebuild-cache', is_flag=True,
-              help='ignores the existing cache and regenerates it')
-@click.option('-r', '--only-core-tags', is_flag=True,
-              help='keep only CORE single and composite keywords.')
-@click.option('--no-cache', is_flag=True,
-              help='do not cache the taxonomy')
+@click.option("-f", "--filepath", help="extract keywords from this file.")
+@click.option("-k", "--taxonomy", help="the taxonomy file to use.")
+@click.option(
+    "-o",
+    "--output-mode",
+    default="text",
+    help="choose output format (text, dict, raw, html, marcxml).",
+)
+@click.option(
+    "-n", "--output-limit", default=20, help="the limit of keywords to display."
+)
+@click.option(
+    "-s", "--spires", is_flag=True, help="outputs keywords in the SPIRES format."
+)
+@click.option(
+    "-m", "--match-mode", default="full", help="choose full or partial searching mode."
+)
+@click.option(
+    "-d",
+    "--detect-author-keywords",
+    is_flag=True,
+    help="detect keywords that are from the authors.",
+)
+@click.option(
+    "-e",
+    "--extract-acronyms",
+    is_flag=True,
+    help="outputs a list of acronyms and expansions found.",
+)
+@click.option(
+    "--rebuild-cache",
+    is_flag=True,
+    help="ignores the existing cache and regenerates it",
+)
+@click.option(
+    "-r",
+    "--only-core-tags",
+    is_flag=True,
+    help="keep only CORE single and composite keywords.",
+)
+@click.option("--no-cache", is_flag=True, help="do not cache the taxonomy")
 @with_appcontext
-def extract(filepath, taxonomy, output_mode, output_limit,
-            spires, match_mode, detect_author_keywords, extract_acronyms,
-            rebuild_cache, only_core_tags, no_cache):
+def extract(
+    filepath,
+    taxonomy,
+    output_mode,
+    output_limit,
+    spires,
+    match_mode,
+    detect_author_keywords,
+    extract_acronyms,
+    rebuild_cache,
+    only_core_tags,
+    no_cache,
+):
     """Run keyword extraction on given PDF file for given taxonomy."""
     if not filepath or not taxonomy:
         print("No PDF file or taxonomy given!", file=sys.stderr)
         sys.exit(0)
 
     click.echo(
-        ">>> Going extract keywords from {0} as '{1}'...".format(
-            filepath, output_mode
-        )
+        ">>> Going extract keywords from {0} as '{1}'...".format(filepath, output_mode)
     )
     if not os.path.isfile(filepath):
         click.echo(
@@ -90,6 +116,6 @@ def extract(filepath, taxonomy, output_mode, output_limit,
         with_author_keywords=detect_author_keywords,
         rebuild_cache=rebuild_cache,
         only_core_tags=only_core_tags,
-        extract_acronyms=extract_acronyms
+        extract_acronyms=extract_acronyms,
     )
     click.echo(result)

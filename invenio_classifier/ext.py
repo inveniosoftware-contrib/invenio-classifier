@@ -42,11 +42,11 @@ class InvenioClassifier(object):
         """Flask application initialization."""
         self.init_config(app)
         app.cli.add_command(classifier_cmd)
-        app.extensions['invenio-classifier'] = self
+        app.extensions["invenio-classifier"] = self
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('CLASSIFIER_'):
+            if k.startswith("CLASSIFIER_"):
                 app.config.setdefault(k, getattr(config, k))

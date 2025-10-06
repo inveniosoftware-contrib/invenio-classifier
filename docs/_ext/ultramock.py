@@ -23,6 +23,7 @@
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
 """Hijacks `mock` to fake as many non-available modules as possible."""
+
 import sys
 import types
 
@@ -33,6 +34,8 @@ except ImportError:
 
 # skip `_is_magic` check.
 orig_is_magic = mock._is_magic
+
+
 def always_false(*args, **kwargs):
     return False
 
@@ -40,6 +43,8 @@ def always_false(*args, **kwargs):
 # avoid spec configuration for mocked classes with super classes.
 # honestly this does not happen very often and is kind of a tricky case.
 orig_mock_add_spec = mock.NonCallableMock._mock_add_spec
+
+
 def mock_add_spec_fake(self, spec, spec_set):
     orig_mock_add_spec(self, None, None)
 
@@ -66,7 +71,7 @@ class MockedModule(types.ModuleType):
     def __init__(self, name):
         super(types.ModuleType, self).__init__(name)
         self.__name__ = super.__name__
-        self.__file__ = self.__name__.replace('.', '/') + '.py'
+        self.__file__ = self.__name__.replace(".", "/") + ".py"
         sys.modules[self.__name__] = self
 
     def __getattr__(self, key):
@@ -77,12 +82,16 @@ class MockedModule(types.ModuleType):
 
 # overwrite imports
 orig_import = __import__
+
+
 def import_mock(name, *args, **kwargs):
     try:
         return orig_import(name, *args, **kwargs)
     except ImportError:
         return MockedModule(name)
-import_patch = mock.patch('__builtin__.__import__', side_effect=import_mock)
+
+
+import_patch = mock.patch("__builtin__.__import__", side_effect=import_mock)
 
 
 # public methods

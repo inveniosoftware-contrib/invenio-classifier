@@ -51,51 +51,37 @@ def app():
 @pytest.fixture
 def demo_taxonomy():
     """Return path to demo taxonomy file."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data', 'taxonomies',
-        'test.rdf'
-    )
+    return os.path.join(os.path.dirname(__file__), "data", "taxonomies", "test.rdf")
 
 
 @pytest.fixture
 def hep_taxonomy():
     """Return path to HEP taxonomy file."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data', 'taxonomies', 'HEPont.rdf')
+    return os.path.join(os.path.dirname(__file__), "data", "taxonomies", "HEPont.rdf")
 
 
 @pytest.fixture
 def demo_pdf_file():
     """Return path to demo PDF file."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data',
-        '1603.08749.pdf'
-    )
+    return os.path.join(os.path.dirname(__file__), "data", "1603.08749.pdf")
 
 
 @pytest.fixture
 def demo_pdf_file_with_funny_author_kw_sep():
     """Return path to demo PDF file."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data',
-        '1705.06516.pdf'
-    )
+    return os.path.join(os.path.dirname(__file__), "data", "1705.06516.pdf")
 
 
 @pytest.fixture
 def demo_pdf_file_with_author_keywords():
     """Return path to demo PDF file with author keywords."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data',
-        '1705.03156.pdf'
-    )
+    return os.path.join(os.path.dirname(__file__), "data", "1705.03156.pdf")
 
 
 @pytest.fixture
 def pdf_with_composite_keywords():
     """Return path to PDF file with composite keywords."""
-    return os.path.join(
-        os.path.dirname(__file__), 'data', '1802.08709.pdf')
+    return os.path.join(os.path.dirname(__file__), "data", "1802.08709.pdf")
 
 
 @pytest.fixture

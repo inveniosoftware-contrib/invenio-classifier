@@ -32,8 +32,7 @@ from flask import current_app
 from six import iteritems
 
 from .acronymer import get_acronyms
-from .keyworder import get_author_keywords, get_composite_keywords, \
-    get_single_keywords
+from .keyworder import get_author_keywords, get_composite_keywords, get_single_keywords
 from .reader import KeywordToken
 from .utils import encode_for_xml
 
@@ -80,7 +79,7 @@ def extract_abbreviations(fulltext):
     """
     acronyms = {}
     for k, v in get_acronyms(fulltext).items():
-        acronyms[KeywordToken(k, type='acronym')] = v
+        acronyms[KeywordToken(k, type="acronym")] = v
     return acronyms
 
 
@@ -100,14 +99,21 @@ def extract_author_keywords(skw_db, ckw_db, fulltext):
     """
     akw = {}
     for k, v in get_author_keywords(skw_db, ckw_db, fulltext).items():
-        akw[KeywordToken(k, type='author-kw')] = v
+        akw[KeywordToken(k, type="author-kw")] = v
     return akw
 
 
-def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
-                        author_keywords=None, acronyms=None,
-                        output_mode="text", output_limit=0, spires=False,
-                        only_core_tags=False):
+def get_keywords_output(
+    single_keywords,
+    composite_keywords,
+    taxonomy_name,
+    author_keywords=None,
+    acronyms=None,
+    output_mode="text",
+    output_limit=0,
+    spires=False,
+    only_core_tags=False,
+):
     """Return a formatted string representing the keywords in the chosen style.
 
     This is the main routing call, this function will
@@ -136,17 +142,24 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
     for w in single_keywords_p:
         categories[w[0].concept] = w[0].type
 
-    categories = [{'keyword': key, 'category': value}
-                  for key, value in iteritems(categories)]
+    categories = [
+        {"keyword": key, "category": value} for key, value in iteritems(categories)
+    ]
 
-    complete_output = _output_complete(single_keywords_p, composite_keywords_p,
-                                       author_keywords, acronyms, spires,
-                                       only_core_tags, limit=output_limit)
+    complete_output = _output_complete(
+        single_keywords_p,
+        composite_keywords_p,
+        author_keywords,
+        acronyms,
+        spires,
+        only_core_tags,
+        limit=output_limit,
+    )
     functions = {
         "text": _output_text,
         "marcxml": _output_marc,
         "html": _output_html,
-        "dict": _output_dict
+        "dict": _output_dict,
     }
 
     if output_mode != "raw":
@@ -157,15 +170,20 @@ def get_keywords_output(single_keywords, composite_keywords, taxonomy_name,
                 _kw(_sort_kw_matches(single_keywords, output_limit)),
                 _kw(_sort_kw_matches(composite_keywords, output_limit)),
                 author_keywords,  # this we don't limit (?)
-                _kw(_sort_kw_matches(acronyms, output_limit))
+                _kw(_sort_kw_matches(acronyms, output_limit)),
             )
         else:
-            return (single_keywords_p, composite_keywords_p,
-                    author_keywords, acronyms)
+            return (single_keywords_p, composite_keywords_p, author_keywords, acronyms)
 
 
-def build_marc(recid, single_keywords, composite_keywords,
-               spires=False, author_keywords=None, acronyms=None):
+def build_marc(
+    recid,
+    single_keywords,
+    composite_keywords,
+    spires=False,
+    author_keywords=None,
+    acronyms=None,
+):
     """Create xml record.
 
     :var recid: integer
@@ -177,30 +195,31 @@ def build_marc(recid, single_keywords, composite_keywords,
     :keyword acronyms: dictionary of extracted acronyms
     :return: str, marxml
     """
-    output = ['<collection><record>\n'
-              '<controlfield tag="001">%s</controlfield>' % recid]
+    output = [
+        "<collection><record>\n" '<controlfield tag="001">%s</controlfield>' % recid
+    ]
 
     # no need to sort
     single_keywords = single_keywords.items()
     composite_keywords = composite_keywords.items()
 
-    output.append(_output_marc(
-        single_keywords,
-        composite_keywords,
-        author_keywords,
-        acronyms
-    ))
+    output.append(
+        _output_marc(single_keywords, composite_keywords, author_keywords, acronyms)
+    )
 
-    output.append('</record></collection>')
+    output.append("</record></collection>")
 
-    return '\n'.join(output)
+    return "\n".join(output)
 
 
-def _output_marc(output_complete, categories,
-                 kw_field=None,
-                 auth_field=None,
-                 acro_field=None,
-                 provenience='Classifier'):
+def _output_marc(
+    output_complete,
+    categories,
+    kw_field=None,
+    auth_field=None,
+    acro_field=None,
+    provenience="Classifier",
+):
     """Output the keywords in the MARCXML format.
 
     :var skw_matches: list of single keywords
@@ -219,53 +238,78 @@ def _output_marc(output_complete, categories,
         kw_field = current_app.config["CLASSIFIER_RECORD_KEYWORD_FIELD"]
 
     if auth_field is None:
-        auth_field = current_app.config[
-            "CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"
-        ]
+        auth_field = current_app.config["CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"]
 
     if acro_field is None:
-        acro_field = current_app.config[
-            "CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"
-        ]
+        acro_field = current_app.config["CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"]
 
-    kw_template = ('<datafield tag="%s" ind1="%s" ind2="%s">\n'
-                   '    <subfield code="2">%s</subfield>\n'
-                   '    <subfield code="a">%s</subfield>\n'
-                   '    <subfield code="n">%s</subfield>\n'
-                   '    <subfield code="9">%s</subfield>\n'
-                   '</datafield>\n')
+    kw_template = (
+        '<datafield tag="%s" ind1="%s" ind2="%s">\n'
+        '    <subfield code="2">%s</subfield>\n'
+        '    <subfield code="a">%s</subfield>\n'
+        '    <subfield code="n">%s</subfield>\n'
+        '    <subfield code="9">%s</subfield>\n'
+        "</datafield>\n"
+    )
 
     output = []
 
     tag, ind1, ind2 = _parse_marc_code(kw_field)
-    for keywords in (output_complete["single_keywords"],
-                     output_complete["core_keywords"]):
+    for keywords in (
+        output_complete["single_keywords"],
+        output_complete["core_keywords"],
+    ):
         for kw in keywords:
-            output.append(kw_template % (tag, ind1, ind2,
-                                         encode_for_xml(provenience),
-                                         encode_for_xml(kw), keywords[kw],
-                                         encode_for_xml(categories[kw])))
+            output.append(
+                kw_template
+                % (
+                    tag,
+                    ind1,
+                    ind2,
+                    encode_for_xml(provenience),
+                    encode_for_xml(kw),
+                    keywords[kw],
+                    encode_for_xml(categories[kw]),
+                )
+            )
 
-    author_keywords = [keyword['author_keyword'] for keyword in
-                       output_complete["author_keywords"]]
+    author_keywords = [
+        keyword["author_keyword"] for keyword in output_complete["author_keywords"]
+    ]
 
-    for field, keywords in ((auth_field, author_keywords),
-                            (acro_field, output_complete["acronyms"])):
+    for field, keywords in (
+        (auth_field, author_keywords),
+        (acro_field, output_complete["acronyms"]),
+    ):
         # field='' we shall not save the keywords
         if keywords and len(keywords) and field:
             tag, ind1, ind2 = _parse_marc_code(field)
             for kw, info in keywords.items():
-                output.append(kw_template % (tag, ind1, ind2,
-                                             encode_for_xml(provenience),
-                                             encode_for_xml(kw), '',
-                                             encode_for_xml(categories[kw])))
+                output.append(
+                    kw_template
+                    % (
+                        tag,
+                        ind1,
+                        ind2,
+                        encode_for_xml(provenience),
+                        encode_for_xml(kw),
+                        "",
+                        encode_for_xml(categories[kw]),
+                    )
+                )
 
     return "".join(output)
 
 
-def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
-                     acronyms=None, spires=False, only_core_tags=False,
-                     limit=None):
+def _output_complete(
+    skw_matches=None,
+    ckw_matches=None,
+    author_keywords=None,
+    acronyms=None,
+    spires=False,
+    only_core_tags=False,
+    limit=None,
+):
     if limit is None:
         limit = current_app.config["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]
 
@@ -276,27 +320,26 @@ def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
         resized_skw = skw_matches
         resized_ckw = ckw_matches
 
-    results = {"core_keywords": _get_core_keywords(
-        skw_matches, ckw_matches, spires=spires)}
+    results = {
+        "core_keywords": _get_core_keywords(skw_matches, ckw_matches, spires=spires)
+    }
 
     if not only_core_tags:
         results["author_keywords"] = _get_author_keywords(
-            author_keywords, spires=spires)
-        results["composite_keywords"] = _get_compositekws(
-            resized_ckw, spires=spires)
+            author_keywords, spires=spires
+        )
+        results["composite_keywords"] = _get_compositekws(resized_ckw, spires=spires)
         results["single_keywords"] = _get_singlekws(resized_skw, spires=spires)
         results["field_codes"] = _get_fieldcodes(
-            resized_skw, resized_ckw, spires=spires)
+            resized_skw, resized_ckw, spires=spires
+        )
         results["acronyms"] = _get_acronyms(acronyms)
 
     return results
 
 
 def _output_dict(complete_output, categories):
-    return {
-        "complete_output": complete_output,
-        "categories": categories
-    }
+    return {"complete_output": complete_output, "categories": categories}
 
 
 def _output_text(complete_output, categories):
@@ -309,9 +352,9 @@ def _output_text(complete_output, categories):
     for result in complete_output:
         list_result = complete_output[result]
         if list_result:
-            list_result_sorted = sorted(list_result,
-                                        key=lambda x: list_result[x],
-                                        reverse=True)
+            list_result_sorted = sorted(
+                list_result, key=lambda x: list_result[x], reverse=True
+            )
             output += "\n\n{0}:\n".format(result)
             for element in list_result_sorted:
                 output += "\n{0} {1}".format(list_result[element], element)
@@ -340,9 +383,9 @@ def _output_html(complete_output, categories):
     <body>
     {0}
     </body>
-    </html>""".format(
-        _output_text(complete_output).replace('\n', '<br>')
-    ).replace('\n', '')
+    </html>""".format(_output_text(complete_output).replace("\n", "<br>")).replace(
+        "\n", ""
+    )
 
 
 def _get_singlekws(skw_matches, spires=False):
@@ -355,9 +398,8 @@ def _get_singlekws(skw_matches, spires=False):
     output = {}
     for single_keyword, info in skw_matches:
         output[single_keyword.output(spires)] = len(info[0])
-    output = [{'keyword': key, 'number': value}
-              for key, value in iteritems(output)]
-    return sorted(output, key=lambda x: x['number'], reverse=True)
+    output = [{"keyword": key, "number": value} for key, value in iteritems(output)]
+    return sorted(output, key=lambda x: x["number"], reverse=True)
 
 
 def _get_compositekws(ckw_matches, spires=False):
@@ -369,13 +411,15 @@ def _get_compositekws(ckw_matches, spires=False):
     """
     output = {}
     for composite_keyword, info in ckw_matches:
-        output[composite_keyword.output(spires)] = {"number": len(info[0]),
-                                                    "details": info[1]}
-    output = [{'keyword': key,
-               'number': value['number'],
-               'details': value['details']}
-              for key, value in iteritems(output)]
-    return sorted(output, key=lambda x: x['number'], reverse=True)
+        output[composite_keyword.output(spires)] = {
+            "number": len(info[0]),
+            "details": info[1],
+        }
+    output = [
+        {"keyword": key, "number": value["number"], "details": value["details"]}
+        for key, value in iteritems(output)
+    ]
+    return sorted(output, key=lambda x: x["number"], reverse=True)
 
 
 def _get_acronyms(acronyms):
@@ -383,12 +427,15 @@ def _get_acronyms(acronyms):
     acronyms_str = {}
     if acronyms:
         for acronym, expansions in iteritems(acronyms):
-            expansions_str = ", ".join(["%s (%d)" % expansion
-                                        for expansion in expansions])
+            expansions_str = ", ".join(
+                ["%s (%d)" % expansion for expansion in expansions]
+            )
             acronyms_str[acronym] = expansions_str
 
-    return [{'acronym': str(key), 'expansion': value.encode('utf8')}
-            for key, value in iteritems(acronyms_str)]
+    return [
+        {"acronym": str(key), "expansion": value.encode("utf8")}
+        for key, value in iteritems(acronyms_str)
+    ]
 
 
 def _get_author_keywords(author_keywords, spires=False):
@@ -402,9 +449,9 @@ def _get_author_keywords(author_keywords, spires=False):
                 matched_keywords.append(ckw.output(spires))
             for skw, spans in skw_matches.items():
                 matched_keywords.append(skw.output(spires))
-            new_keyword = {'author_keyword': str(keyword)}
+            new_keyword = {"author_keyword": str(keyword)}
             if matched_keywords:
-                new_keyword['matched_keywords'] = matched_keywords
+                new_keyword["matched_keywords"] = matched_keywords
             out.append(new_keyword)
     return out
 
@@ -424,7 +471,6 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
         for fieldcode in skw.fieldcodes:
             fieldcodes.setdefault(fieldcode, set()).add(skw.output(spires))
     for ckw, _ in ckw_matches:
-
         if len(ckw.fieldcodes):
             for fieldcode in ckw.fieldcodes:
                 fieldcodes.setdefault(fieldcode, set()).add(ckw.output(spires))
@@ -432,14 +478,14 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
             for kw in ckw.getComponents():
                 for fieldcode in kw.fieldcodes:
                     fieldcodes.setdefault(fieldcode, set()).add(
-                        '%s*' % ckw.output(spires))
-                    fieldcodes.setdefault('*', set()).add(kw.output(spires))
+                        "%s*" % ckw.output(spires)
+                    )
+                    fieldcodes.setdefault("*", set()).add(kw.output(spires))
 
     for fieldcode, keywords in fieldcodes.items():
-        output[fieldcode] = ', '.join(keywords)
+        output[fieldcode] = ", ".join(keywords)
 
-    return [{'fieldcode': key, 'keywords': value}
-            for key, value in iteritems(output)]
+    return [{"fieldcode": key, "keywords": value} for key, value in iteritems(output)]
 
 
 def _get_core_keywords(skw_matches, ckw_matches, spires=False):
@@ -477,9 +523,8 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                 if c.core:
                     output[c.output(spires)] = info[1][i]
                 i += 1
-    output = [{'keyword': key, 'number': value}
-              for key, value in iteritems(output)]
-    return sorted(output, key=lambda x: x['number'], reverse=True)
+    output = [{"keyword": key, "number": value} for key, value in iteritems(output)]
+    return sorted(output, key=lambda x: x["number"], reverse=True)
 
 
 def filter_core_keywords(keywords):
@@ -504,6 +549,7 @@ def clean_before_output(kw_matches):
 
     return filtered_kw_matches
 
+
 # ---------------------------------------------------------------------
 #                          helper functions
 # ---------------------------------------------------------------------
@@ -515,6 +561,7 @@ def _skw_matches_comparator(kw0, kw1):
     First by the number of their spans (ie. how many times they were found),
     if it is equal it compares them by lenghts of their labels.
     """
+
     def compare(a, b):
         return (a > b) - (a < b)
 
@@ -553,14 +600,13 @@ def get_partial_text(fulltext):
     The version is composed of 20% in the beginning and 20% in the middle of
     the text.
     """
+
     def _get_index(x):
         return int(float(x) / 100 * len(fulltext))
 
     partial_text = [
-        fulltext[_get_index(start):_get_index(end)]
-        for start, end in current_app.config[
-            "CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"
-        ]
+        fulltext[_get_index(start) : _get_index(end)]
+        for start, end in current_app.config["CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"]
     ]
 
     return "\n".join(partial_text)
@@ -581,10 +627,10 @@ def _parse_marc_code(field):
     """Parse marc field and return default indicators if not filled in."""
     field = str(field)
     if len(field) < 4:
-        raise Exception('Wrong field code: %s' % field)
+        raise Exception("Wrong field code: %s" % field)
     else:
-        field += '__'
+        field += "__"
     tag = field[0:3]
-    ind1 = field[3].replace('_', '')
-    ind2 = field[4].replace('_', '')
+    ind1 = field[3].replace("_", "")
+    ind2 = field[4].replace("_", "")
     return tag, ind1, ind2

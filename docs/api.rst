@@ -32,10 +32,3 @@ Extraction API
    :members:
    :undoc-members:
    :show-inheritance:
-
-
-Flask extension
----------------
-.. automodule:: invenio_classifier.ext
-   :members:
-   :undoc-members:

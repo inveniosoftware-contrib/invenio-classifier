@@ -35,17 +35,18 @@ from invenio_classifier import InvenioClassifier
 def test_version():
     """Test version import."""
     from invenio_classifier import __version__
+
     assert __version__
 
 
 def test_init():
     """Test extension initialization."""
-    app = Flask('testapp')
+    app = Flask("testapp")
     ext = InvenioClassifier(app)
-    assert 'invenio-classifier' in app.extensions
+    assert "invenio-classifier" in app.extensions
 
-    app = Flask('testapp')
+    app = Flask("testapp")
     ext = InvenioClassifier()
-    assert 'invenio-classifier' not in app.extensions
+    assert "invenio-classifier" not in app.extensions
     ext.init_app(app)
-    assert 'invenio-classifier' in app.extensions
+    assert "invenio-classifier" in app.extensions

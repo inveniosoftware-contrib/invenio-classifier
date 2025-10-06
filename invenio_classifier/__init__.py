@@ -35,8 +35,8 @@ from .ext import InvenioClassifier
 from .version import __version__
 
 __all__ = (
-    '__version__',
-    'InvenioClassifier',
-    'get_keywords_from_text',
-    'get_keywords_from_local_file',
+    "__version__",
+    "InvenioClassifier",
+    "get_keywords_from_text",
+    "get_keywords_from_local_file",
 )

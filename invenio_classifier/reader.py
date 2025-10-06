@@ -44,7 +44,6 @@ import requests
 from flask import current_app
 from six import iteritems, text_type
 from six.moves import cPickle, urllib_error
-from werkzeug.local import LocalProxy
 
 from .errors import TaxonomyError
 from .utils import get_clock
@@ -78,17 +77,17 @@ def get_cache(taxonomy_id):
         # if source exists and is newer than the cache hold in memory
         if os.path.isfile(onto_path) and os.path.getmtime(onto_path) > ctime:
             current_app.logger.info(
-                'Forcing taxonomy rebuild as cached version is newer/updated.'
+                "Forcing taxonomy rebuild as cached version is newer/updated."
             )
             return {}  # force cache rebuild
 
         # if cache exists and is newer than the cache hold in memory
         if os.path.isfile(cache_path) and os.path.getmtime(cache_path) > ctime:
             current_app.logger.info(
-                'Forcing taxonomy rebuild as source file is newer/updated.'
+                "Forcing taxonomy rebuild as source file is newer/updated."
             )
             return {}
-        current_app.logger.info('Taxonomy retrieved from cache')
+        current_app.logger.info("Taxonomy retrieved from cache")
         return taxonomy
     return {}
 
@@ -107,21 +106,19 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
     # relates to an existing ontology.
     onto_name, onto_path, onto_url = _get_ontology(taxonomy_name)
     if not onto_path:
-        raise TaxonomyError("Unable to locate the taxonomy: '%s'."
-                            % taxonomy_name)
+        raise TaxonomyError("Unable to locate the taxonomy: '%s'." % taxonomy_name)
 
     cache_path = _get_cache_path(onto_name)
     current_app.logger.debug(
-        'Taxonomy discovered, now we load it '
-        '(from cache: %s, onto_path: %s, cache_path: %s)'
+        "Taxonomy discovered, now we load it "
+        "(from cache: %s, onto_path: %s, cache_path: %s)"
         % (not no_cache, onto_path, cache_path)
     )
 
     if os.access(cache_path, os.R_OK):
         if os.access(onto_path, os.R_OK):
             if rebuild or no_cache:
-                current_app.logger.debug(
-                    "Cache generation was manually forced.")
+                current_app.logger.debug("Cache generation was manually forced.")
                 return _build_cache(onto_path, skip_cache=no_cache)
         else:
             # ontology file not found. Use the cache instead.
@@ -132,8 +129,7 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
             )
             return _get_cache(cache_path, source_file=onto_path)
 
-        if (os.path.getmtime(cache_path) >
-                os.path.getmtime(onto_path)):
+        if os.path.getmtime(cache_path) > os.path.getmtime(onto_path):
             # Cache is more recent than the ontology: use cache.
             current_app.logger.debug(
                 "Normal situation, cache is older than ontology,"
@@ -144,27 +140,30 @@ def get_regular_expressions(taxonomy_name, rebuild=False, no_cache=False):
             # Ontology is more recent than the cache: rebuild cache.
             current_app.logger.warning(
                 "Cache '%s' is older than '%s'. "
-                "We will rebuild the cache" %
-                (cache_path, onto_path)
+                "We will rebuild the cache" % (cache_path, onto_path)
             )
             return _build_cache(onto_path, skip_cache=no_cache)
 
     elif os.access(onto_path, os.R_OK):
-        if not no_cache and\
-                os.path.exists(cache_path) and\
-                not os.access(cache_path, os.W_OK):
-            raise TaxonomyError('We cannot read/write into: %s. '
-                                'Aborting!' % cache_path)
+        if (
+            not no_cache
+            and os.path.exists(cache_path)
+            and not os.access(cache_path, os.W_OK)
+        ):
+            raise TaxonomyError(
+                "We cannot read/write into: %s. " "Aborting!" % cache_path
+            )
         elif not no_cache and os.path.exists(cache_path):
             current_app.logger.warning(
-                'Cache %s exists, but is not readable!' % cache_path)
-        current_app.logger.info(
-            "Cache not available. Building it now: %s" % onto_path)
+                "Cache %s exists, but is not readable!" % cache_path
+            )
+        current_app.logger.info("Cache not available. Building it now: %s" % onto_path)
         return _build_cache(onto_path, skip_cache=no_cache)
 
     else:
-        raise TaxonomyError("We miss both source and cache"
-                            " of the taxonomy: %s" % taxonomy_name)
+        raise TaxonomyError(
+            "We miss both source and cache" " of the taxonomy: %s" % taxonomy_name
+        )
 
 
 def _get_remote_ontology(onto_url, time_difference=None):
@@ -180,8 +179,7 @@ def _get_remote_ontology(onto_url, time_difference=None):
         return False
 
     dl_dir = os.path.join(
-        current_app.config["CLASSIFIER_WORKDIR"] or tempfile.gettempdir(),
-        "classifier"
+        current_app.config["CLASSIFIER_WORKDIR"] or tempfile.gettempdir(), "classifier"
     )
     if not os.path.exists(dl_dir):
         os.makedirs(dl_dir)
@@ -253,18 +251,19 @@ def _discover_ontology(ontology_path):
     """
     last_part = os.path.split(os.path.abspath(ontology_path))[1]
     possible_patterns = [last_part, last_part.lower()]
-    if not last_part.endswith('.rdf'):
-        possible_patterns.append(last_part + '.rdf')
-    places = [os.path.join(current_app.instance_path, "classifier"),
-              os.path.abspath('.'),
-              os.path.join(os.path.dirname(__file__), "classifier")]
+    if not last_part.endswith(".rdf"):
+        possible_patterns.append(last_part + ".rdf")
+    places = [
+        os.path.join(current_app.instance_path, "classifier"),
+        os.path.abspath("."),
+        os.path.join(os.path.dirname(__file__), "classifier"),
+    ]
 
-    workdir = current_app.config.get('CLASSIFIER_WORKDIR')
+    workdir = current_app.config.get("CLASSIFIER_WORKDIR")
     if workdir:
         places.append(workdir)
 
-    current_app.logger.debug(
-        "Searching for taxonomy using string: %s" % last_part)
+    current_app.logger.debug("Searching for taxonomy using string: %s" % last_part)
     current_app.logger.debug("Possible patterns: %s" % possible_patterns)
     for path in places:
         try:
@@ -273,29 +272,30 @@ def _discover_ontology(ontology_path):
                 for filename in os.listdir(path):
                     for pattern in possible_patterns:
                         filename_lc = filename.lower()
-                        if pattern == filename_lc and\
-                                os.path.exists(os.path.join(path, filename)):
-                            filepath = os.path.abspath(os.path.join(path,
-                                                                    filename))
-                            if (os.access(filepath, os.R_OK)):
+                        if pattern == filename_lc and os.path.exists(
+                            os.path.join(path, filename)
+                        ):
+                            filepath = os.path.abspath(os.path.join(path, filename))
+                            if os.access(filepath, os.R_OK):
                                 current_app.logger.debug(
-                                    "Found taxonomy at: {0}".format(filepath))
+                                    "Found taxonomy at: {0}".format(filepath)
+                                )
                                 return filepath
                             else:
                                 current_app.logger.warning(
-                                    'Found taxonomy at: {0}, but it is'
-                                    ' not readable. Continue '
-                                    'searching...'.format(
-                                        filepath
-                                    )
+                                    "Found taxonomy at: {0}, but it is"
+                                    " not readable. Continue "
+                                    "searching...".format(filepath)
                                 )
         except OSError as os_error_msg:
             current_app.logger.exception(
                 'OS Error when listing path "{0}": {1}'.format(
-                    str(path), str(os_error_msg))
+                    str(path), str(os_error_msg)
+                )
             )
     current_app.logger.debug(
-        "No taxonomy with pattern '{0}' found".format(ontology_path))
+        "No taxonomy with pattern '{0}' found".format(ontology_path)
+    )
 
 
 class KeywordToken(object):
@@ -307,7 +307,7 @@ class KeywordToken(object):
     same subject appears as one -- :see: self.__hash__ and self.__cmp__.
     """
 
-    def __init__(self, subject, store=None, namespace=None, type='HEP'):
+    def __init__(self, subject, store=None, namespace=None, type="HEP"):
         """Initialize KeywordToken with a subject.
 
         :param subject: string or RDF object
@@ -327,7 +327,7 @@ class KeywordToken(object):
         self.compositeof = []
         self.core = False
         # True means composite keyword
-        self._composite = '#Composite' in subject
+        self._composite = "#Composite" in subject
         self.__hash = None
 
         # the tokens are coming possibly from a normal text file
@@ -338,12 +338,12 @@ class KeywordToken(object):
             self.nostandalone = False
             self.fieldcodes = []
             self.core = False
-            if subject.find(' ') > -1:
+            if subject.find(" ") > -1:
                 self._composite = True
 
         # definitions from rdf
         else:
-            self.short_id = self.short_id.split('#')[-1]
+            self.short_id = self.short_id.split("#")[-1]
 
             # find alternate names for this label
             basic_labels = []
@@ -351,8 +351,7 @@ class KeywordToken(object):
             # turn those patterns into regexes only for simple keywords
             if self._composite is False:
                 try:
-                    for label in store.objects(subject,
-                                               namespace["prefLabel"]):
+                    for label in store.objects(subject, namespace["prefLabel"]):
                         # XXX shall i make it unicode?
                         basic_labels.append(str(label))
                 except TypeError:
@@ -360,9 +359,9 @@ class KeywordToken(object):
                 self.concept = basic_labels[0]
             else:
                 try:
-                    self.concept = str(store.value(subject,
-                                                   namespace["prefLabel"],
-                                                   any=True))
+                    self.concept = str(
+                        store.value(subject, namespace["prefLabel"], any=True)
+                    )
                 except KeyError:
                     current_app.logger.warning(
                         "Keyword with subject {0} has no prefLabel. "
@@ -389,13 +388,15 @@ class KeywordToken(object):
             self.regex = _get_searchable_regex(basic_labels, hidden_labels)
 
             try:
-                for note in map(lambda s: str(s).lower().strip(),
-                                store.objects(subject, namespace["note"])):
-                    if note == 'core':
+                for note in map(
+                    lambda s: str(s).lower().strip(),
+                    store.objects(subject, namespace["note"]),
+                ):
+                    if note == "core":
                         self.core = True
                     elif note in ("nostandalone", "nonstandalone"):
                         self.nostandalone = True
-                    elif 'fc:' in note:
+                    elif "fc:" in note:
                         self.fieldcodes.append(note[3:].strip())
             except TypeError:
                 pass
@@ -415,45 +416,49 @@ class KeywordToken(object):
             for label in store.objects(self.id, namespace["compositeOf"]):
                 strlabel = str(label).split("#")[-1]
                 component_name = label.split("#")[-1]
-                component_positions.append((small_subject.find(component_name),
-                                            strlabel))
+                component_positions.append(
+                    (small_subject.find(component_name), strlabel)
+                )
             component_positions.sort()
             if not component_positions:
                 current_app.logger.error(
                     "Keyword is marked as composite, "
-                    "but no composite components refs found: {0}".format(
-                        self.short_id)
+                    "but no composite components refs found: {0}".format(self.short_id)
                 )
             else:
                 self.compositeof = [x[1] for x in component_positions]
 
-    def refreshCompositeOf(self, single_keywords, composite_keywords,
-                           store=None, namespace=None):
+    def refreshCompositeOf(
+        self, single_keywords, composite_keywords, store=None, namespace=None
+    ):
         """Re-check sub-parts of this keyword.
 
         This should be called after the whole RDF was processed, because
         it is using a cache of single keywords and if that
         one is incomplete, you will not identify all parts.
         """
+
         def _get_ckw_components(new_vals, label):
             if label in single_keywords:
                 new_vals.append(single_keywords[label])
-            elif ('Composite.%s' % label) in composite_keywords:
-                for l in composite_keywords['Composite.{0}'.format(label)].compositeof:  # noqa
-                    _get_ckw_components(new_vals, l)
+            elif ("Composite.%s" % label) in composite_keywords:
+                for i in composite_keywords["Composite.{0}".format(label)].compositeof:  # noqa
+                    _get_ckw_components(new_vals, i)
             elif label in composite_keywords:
-                for l in composite_keywords[label].compositeof:
-                    _get_ckw_components(new_vals, l)
+                for i in composite_keywords[label].compositeof:
+                    _get_ckw_components(new_vals, i)
             else:
                 # One single or composite keyword is missing from the taxonomy.
                 # This is due to an error in the taxonomy description.
-                message = "The composite term \"%s\""\
-                          " should be made of single keywords,"\
-                          " but at least one is missing." % self.id
+                message = (
+                    'The composite term "%s"'
+                    " should be made of single keywords,"
+                    " but at least one is missing." % self.id
+                )
                 if store is not None:
-                    message += "Needed components: %s"\
-                               % list(store.objects(self.id,
-                                                    namespace["compositeOf"]))
+                    message += "Needed components: %s" % list(
+                        store.objects(self.id, namespace["compositeOf"])
+                    )
                 message += " Missing is: %s" % label
                 raise TaxonomyError(message)
 
@@ -499,22 +504,22 @@ class KeywordToken(object):
         """Get state."""
         state = self.__dict__
         return {
-            "regex": [regex.pattern for regex in state['regex']],
-            "compositeof": [text_type(s) for s in state['compositeof']],
-            "fieldcodes": state['fieldcodes'],
-            "concept": state['concept'],
-            "core": state['core'],
-            "spires": state['spires'],
-            "_KeywordToken__hash": state['_KeywordToken__hash'],
-            "type": state['type'],
-            "nostandalone": state['nostandalone'],
-            "_composite": state['_composite'],
-            "id": state['id'],
+            "regex": [regex.pattern for regex in state["regex"]],
+            "compositeof": [text_type(s) for s in state["compositeof"]],
+            "fieldcodes": state["fieldcodes"],
+            "concept": state["concept"],
+            "core": state["core"],
+            "spires": state["spires"],
+            "_KeywordToken__hash": state["_KeywordToken__hash"],
+            "type": state["type"],
+            "nostandalone": state["nostandalone"],
+            "_composite": state["_composite"],
+            "id": state["id"],
         }
 
     def __setstate__(self, state):
         """Get state."""
-        state['regex'] = [re.compile(regex) for regex in state['regex']]
+        state["regex"] = [re.compile(regex) for regex in state["regex"]]
         self.__dict__.update(state)
 
     def __cmp__(self, other):
@@ -532,9 +537,9 @@ class KeywordToken(object):
             if self.spires:
                 return self.spires
             elif self._composite:
-                return self.concept.replace(':', ',')
+                return self.concept.replace(":", ",")
             # default action
-        return six.ensure_text(self.concept.encode('utf8'))
+        return six.ensure_text(self.concept.encode("utf8"))
 
     def output(self, spires=False):
         """Return string representation with spires value."""
@@ -566,12 +571,16 @@ def _build_cache(source_file, skip_cache=False):
             os.makedirs(cache_dir)
         if os.access(cache_dir, os.R_OK):
             if not os.access(cache_dir, os.W_OK):
-                raise TaxonomyError("Cache directory exists but is not"
-                                    " writable. Check your permissions"
-                                    " for: %s" % cache_dir)
+                raise TaxonomyError(
+                    "Cache directory exists but is not"
+                    " writable. Check your permissions"
+                    " for: %s" % cache_dir
+                )
         else:
-            raise TaxonomyError("Cache directory does not exist"
-                                " (and could not be created): %s" % cache_dir)
+            raise TaxonomyError(
+                "Cache directory does not exist"
+                " (and could not be created): %s" % cache_dir
+            )
 
     timer_start = get_clock()
 
@@ -580,24 +589,27 @@ def _build_cache(source_file, skip_cache=False):
 
     try:
         current_app.logger.info(
-            "Building RDFLib's conjunctive graph from: %s" % source_file)
+            "Building RDFLib's conjunctive graph from: %s" % source_file
+        )
         try:
             store.parse(source_file)
         except urllib_error.URLError:
-            if source_file[0] == '/':
+            if source_file[0] == "/":
                 store.parse("file://" + source_file)
             else:
                 store.parse("file:///" + source_file)
 
-    except rdflib.exceptions.Error as e:
+    except rdflib.exceptions.Error:
         current_app.logger.exception("Serious error reading RDF file")
         raise
 
     except (xml.sax.SAXParseException, ImportError) as e:
         # File is not a RDF file. We assume it is a controlled vocabulary.
         current_app.logger.error(e)
-        current_app.logger.warning("The ontology file is probably not a valid RDF file. \
-            Assuming it is a controlled vocabulary file.")
+        current_app.logger.warning(
+            "The ontology file is probably not a valid RDF file. \
+            Assuming it is a controlled vocabulary file."
+        )
 
         filestream = open(source_file, "r")
         for line in filestream:
@@ -605,7 +617,7 @@ def _build_cache(source_file, skip_cache=False):
             kt = KeywordToken(keyword)
             single_keywords[kt.short_id] = kt
         if not len(single_keywords):
-            raise TaxonomyError('The ontology file is not well formated')
+            raise TaxonomyError("The ontology file is not well formated")
 
     else:  # ok, no exception happened
         current_app.logger.info("Now building cache of keywords")
@@ -629,19 +641,17 @@ def _build_cache(source_file, skip_cache=False):
     cached_data["single"] = single_keywords
     cached_data["composite"] = composite_keywords
     cached_data["creation_time"] = time.gmtime()
-    cached_data["version_info"] = {'rdflib': rdflib.__version__}
+    cached_data["version_info"] = {"rdflib": rdflib.__version__}
     current_app.logger.debug(
-        "Building taxonomy... %d terms built in %.1f sec." %
-        (len(single_keywords) + len(composite_keywords),
-         get_clock() - timer_start))
+        "Building taxonomy... %d terms built in %.1f sec."
+        % (len(single_keywords) + len(composite_keywords), get_clock() - timer_start)
+    )
 
     current_app.logger.info(
-        "Total count of single keywords: %d "
-        % len(single_keywords)
+        "Total count of single keywords: %d " % len(single_keywords)
     )
     current_app.logger.info(
-        "Total count of composite keywords: %d "
-        % len(composite_keywords)
+        "Total count of composite keywords: %d " % len(composite_keywords)
     )
 
     if not skip_cache:
@@ -658,23 +668,26 @@ def _build_cache(source_file, skip_cache=False):
                 except IOError as msg:
                     # Impossible to write the cache.
                     current_app.logger.error(
-                        "Impossible to write cache to '%s'."
-                        % cache_path)
+                        "Impossible to write cache to '%s'." % cache_path
+                    )
                     current_app.logger.error(msg)
                 else:
-                    current_app.logger.debug(
-                        "Writing cache to file %s" % cache_path)
+                    current_app.logger.debug("Writing cache to file %s" % cache_path)
                     cPickle.dump(cached_data, filestream, 1)
                 if filestream:
                     filestream.close()
 
             else:
-                raise TaxonomyError("Cache directory exists but is not "
-                                    "writable. Check your permissions "
-                                    "for: %s" % cache_dir)
+                raise TaxonomyError(
+                    "Cache directory exists but is not "
+                    "writable. Check your permissions "
+                    "for: %s" % cache_dir
+                )
         else:
-            raise TaxonomyError("Cache directory does not exist"
-                                " (and could not be created): %s" % cache_dir)
+            raise TaxonomyError(
+                "Cache directory does not exist"
+                " (and could not be created): %s" % cache_dir
+            )
 
     # now when the whole taxonomy was parsed,
     # find sub-components of the composite kws
@@ -682,8 +695,9 @@ def _build_cache(source_file, skip_cache=False):
     # because we don't  want to pickle regexes multiple times
     # (as they are must be re-compiled at load time)
     for kt in composite_keywords.values():
-        kt.refreshCompositeOf(single_keywords, composite_keywords,
-                              store=store, namespace=namespace)
+        kt.refreshCompositeOf(
+            single_keywords, composite_keywords, store=store, namespace=namespace
+        )
 
     # house-cleaning
     if store:
@@ -783,11 +797,16 @@ def _get_cache(cache_file, source_file=None):
     filestream = open(cache_file, "rb")
     try:
         cached_data = cPickle.load(filestream)
-        version_info = cached_data['version_info']
-        if version_info['rdflib'] != rdflib.__version__:
+        version_info = cached_data["version_info"]
+        if version_info["rdflib"] != rdflib.__version__:
             raise KeyError
-    except (cPickle.UnpicklingError, ImportError,
-            AttributeError, DeprecationWarning, EOFError):
+    except (
+        cPickle.UnpicklingError,
+        ImportError,
+        AttributeError,
+        DeprecationWarning,
+        EOFError,
+    ):
         current_app.logger.warning(
             "The existing cache in %s is not readable. "
             "Removing and rebuilding it." % cache_file
@@ -821,14 +840,13 @@ def _get_cache(cache_file, source_file=None):
         kw.refreshCompositeOf(single_keywords, composite_keywords)
 
     current_app.logger.debug(
-        "Retrieved taxonomy from cache %s created on %s" %
-        (cache_file, time.asctime(cached_data["creation_time"]))
+        "Retrieved taxonomy from cache %s created on %s"
+        % (cache_file, time.asctime(cached_data["creation_time"]))
     )
 
     current_app.logger.debug(
-        "%d terms read in %.1f sec." %
-        (len(single_keywords) + len(composite_keywords),
-         get_clock() - timer_start)
+        "%d terms read in %.1f sec."
+        % (len(single_keywords) + len(composite_keywords), get_clock() - timer_start)
     )
 
     return (single_keywords, composite_keywords)
@@ -863,10 +881,11 @@ def _download_ontology(url, local_file):
     current_app.logger.debug(
         "Copying remote ontology '%s' to file '%s'." % (url, local_file)
     )
+    chunk_size = 1024
     try:
         request = requests.get(url, stream=True)
         if request.status_code == 200:
-            with open(local_file, 'wb') as f:
+            with open(local_file, "wb") as f:
                 for chunk in request.iter_content(chunk_size):
                     f.write(chunk)
     except IOError as e:
@@ -886,10 +905,8 @@ def _get_searchable_regex(basic=None, hidden=None):
     hidden_regex_dict = {}
     for hidden_label in hidden:
         if _is_regex(hidden_label):
-            hidden_regex_dict[hidden_label] = \
-                re.compile(
-                    current_app.config["CLASSIFIER_WORD_WRAP"]
-                    % hidden_label[1:-1]
+            hidden_regex_dict[hidden_label] = re.compile(
+                current_app.config["CLASSIFIER_WORD_WRAP"] % hidden_label[1:-1]
             )
         else:
             pattern = _get_regex_pattern(hidden_label)
@@ -931,13 +948,11 @@ def _get_regex_pattern(label):
                 # The separator is not followed by another word. Treat
                 # it as a symbol.
                 parts[index] = _convert_punctuation(
-                    parts[index],
-                    current_app.config["CLASSIFIER_SYMBOLS"]
+                    parts[index], current_app.config["CLASSIFIER_SYMBOLS"]
                 )
             else:
                 parts[index] = _convert_punctuation(
-                    parts[index],
-                    current_app.config["CLASSIFIER_SEPARATORS"]
+                    parts[index], current_app.config["CLASSIFIER_SEPARATORS"]
                 )
 
     return "".join(parts)
@@ -954,8 +969,7 @@ def check_taxonomy(taxonomy):
     Outputs a list of errors and warnings.
     """
     current_app.logger.info(
-        "Building graph with Python RDFLib version %s" %
-        rdflib.__version__
+        "Building graph with Python RDFLib version %s" % rdflib.__version__
     )
 
     store = rdflib.ConjunctiveGraph()
@@ -981,8 +995,10 @@ def check_taxonomy(taxonomy):
     for subject in uniq_subjects:
         strsubject = str(subject).split("#Composite.")[-1]
         strsubject = strsubject.split("#")[-1]
-        if (strsubject == "http://cern.ch/thesauri/HEPontology.rdf" or
-                strsubject == "compositeOf"):
+        if (
+            strsubject == "http://cern.ch/thesauri/HEPontology.rdf"
+            or strsubject == "compositeOf"
+        ):
             continue
         components = {}
         for predicate, value in store.predicate_objects(subject):
@@ -1032,8 +1048,11 @@ def check_taxonomy(taxonomy):
 
         # Multiple or bad notes
         if note in predicates:
-            bad_notes += [(subject, n) for n in predicates[note]
-                          if n not in ('nostandalone', 'core')]
+            bad_notes += [
+                (subject, n)
+                for n in predicates[note]
+                if n not in ("nostandalone", "core")
+            ]
 
         # Bad hidden labels
         if hiddenLabel in predicates:
@@ -1081,17 +1100,14 @@ def check_taxonomy(taxonomy):
 
         patterns = {}
         for label in [lbl for lbl in labels if lbl in predicates]:
-            for expression in [expr for expr in predicates[label]
-                               if not _is_regex(expr)]:
+            for expression in [
+                expr for expr in predicates[label] if not _is_regex(expr)
+            ]:
                 pattern = _get_regex_pattern(expression)
-                interconcept_collisions.setdefault(pattern, []).\
-                    append((subject, label))
+                interconcept_collisions.setdefault(pattern, []).append((subject, label))
                 if pattern in patterns:
                     stemming_collisions.append(
-                        (subject,
-                         patterns[pattern],
-                         (label, expression)
-                         )
+                        (subject, patterns[pattern], (label, expression))
                     )
                 else:
                     patterns[pattern] = (label, expression)
@@ -1102,12 +1118,10 @@ def check_taxonomy(taxonomy):
         print("\nConcepts with no prefLabel: %d" % len(no_prefLabel))
         print("\n".join(["   %s" % subj for subj in no_prefLabel]))
     if multiple_prefLabels:
-        print(("\nConcepts with multiple prefLabels: %d" %
-               len(multiple_prefLabels)))
+        print(("\nConcepts with multiple prefLabels: %d" % len(multiple_prefLabels)))
         print("\n".join(["   %s" % subj for subj in multiple_prefLabels]))
     if both_composites:
-        print(("\nConcepts with both composite properties: %d" %
-               len(both_composites)))
+        print(("\nConcepts with both composite properties: %d" % len(both_composites)))
         print("\n".join(["   %s" % subj for subj in both_composites]))
     if bad_hidden_labels:
         print("\nConcepts with bad hidden labels: %d" % len(bad_hidden_labels))
@@ -1120,31 +1134,57 @@ def check_taxonomy(taxonomy):
             print("   %s:" % kw)
             print("\n".join(["      '%s'" % lbl for lbl in lbls]))
     if both_skw_and_ckw:
-        print(("\nKeywords that are both skw and ckw: %d" %
-               len(both_skw_and_ckw)))
+        print(("\nKeywords that are both skw and ckw: %d" % len(both_skw_and_ckw)))
         print("\n".join(["   %s" % subj for subj in both_skw_and_ckw]))
 
     print()
 
     if composite_problem1:
-        print("\n".join(["SKW '%s' references an unexisting CKW '%s'." %
-                         (skw, ckw) for skw, ckw in composite_problem1]))
+        print(
+            "\n".join(
+                [
+                    "SKW '%s' references an unexisting CKW '%s'." % (skw, ckw)
+                    for skw, ckw in composite_problem1
+                ]
+            )
+        )
     if composite_problem2:
-        print("\n".join(["SKW '%s' references a SKW '%s'." %
-                         (skw, ckw) for skw, ckw in composite_problem2]))
+        print(
+            "\n".join(
+                [
+                    "SKW '%s' references a SKW '%s'." % (skw, ckw)
+                    for skw, ckw in composite_problem2
+                ]
+            )
+        )
     if composite_problem3:
-        print("\n".join(["SKW '%s' is not composite of CKW '%s'." %
-                         (skw, ckw) for skw, ckw in composite_problem3]))
+        print(
+            "\n".join(
+                [
+                    "SKW '%s' is not composite of CKW '%s'." % (skw, ckw)
+                    for skw, ckw in composite_problem3
+                ]
+            )
+        )
     if composite_problem4:
         for skw, ckws in iteritems(composite_problem4):
             print("SKW '%s' does not exist but is " "referenced by:" % skw)
             print("\n".join(["    %s" % ckw for ckw in ckws]))
     if composite_problem5:
-        print("\n".join(["CKW '%s' references a CKW '%s'." % kw
-                         for kw in composite_problem5]))
+        print(
+            "\n".join(
+                ["CKW '%s' references a CKW '%s'." % kw for kw in composite_problem5]
+            )
+        )
     if composite_problem6:
-        print("\n".join(["CKW '%s' is not composed by SKW '%s'." % kw
-                         for kw in composite_problem6]))
+        print(
+            "\n".join(
+                [
+                    "CKW '%s' is not composed by SKW '%s'." % kw
+                    for kw in composite_problem6
+                ]
+            )
+        )
 
     print("\n==== WARNINGS ====")
 
@@ -1152,8 +1192,10 @@ def check_taxonomy(taxonomy):
         print(("\nConcepts with bad notes: %d" % len(bad_notes)))
         print("\n".join(["   '%s': '%s'" % _note for _note in bad_notes]))
     if stemming_collisions:
-        print("\nFollowing keywords have unnecessary labels that have "
-              "already been generated by Classifier.")
+        print(
+            "\nFollowing keywords have unnecessary labels that have "
+            "already been generated by Classifier."
+        )
         for subj in stemming_collisions:
             print("   %s:\n     %s\n     and %s" % subj)
 
