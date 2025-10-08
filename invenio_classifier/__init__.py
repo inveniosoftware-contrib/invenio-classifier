@@ -31,12 +31,10 @@ or access the API directly.
 from __future__ import absolute_import, print_function
 
 from .api import get_keywords_from_text, get_keywords_from_local_file
-from .ext import InvenioClassifier
 from .version import __version__
 
 __all__ = (
     '__version__',
-    'InvenioClassifier',
     'get_keywords_from_text',
     'get_keywords_from_local_file',
 )

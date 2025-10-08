@@ -28,12 +28,13 @@ from __future__ import print_function
 import os
 from functools import cmp_to_key
 
-from flask import current_app
 from six import iteritems
 
 from .acronymer import get_acronyms
 from .keyworder import get_author_keywords, get_composite_keywords, \
     get_single_keywords
+from .config import CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD, \
+    CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD, CLASSIFIER_RECORD_KEYWORD_FIELD, CLASSIFIER_PARTIAL_TEXT_PERCENTAGES, CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 from .reader import KeywordToken
 from .utils import encode_for_xml
 
@@ -216,17 +217,13 @@ def _output_marc(output_complete, categories,
     :return: string, formatted MARC
     """
     if kw_field is None:
-        kw_field = current_app.config["CLASSIFIER_RECORD_KEYWORD_FIELD"]
+        kw_field = CLASSIFIER_RECORD_KEYWORD_FIELD
 
     if auth_field is None:
-        auth_field = current_app.config[
-            "CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD"
-        ]
+        auth_field = CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD
 
     if acro_field is None:
-        acro_field = current_app.config[
-            "CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD"
-        ]
+        acro_field = CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD
 
     kw_template = ('<datafield tag="%s" ind1="%s" ind2="%s">\n'
                    '    <subfield code="2">%s</subfield>\n'
@@ -267,7 +264,7 @@ def _output_complete(skw_matches=None, ckw_matches=None, author_keywords=None,
                      acronyms=None, spires=False, only_core_tags=False,
                      limit=None):
     if limit is None:
-        limit = current_app.config["CLASSIFIER_DEFAULT_OUTPUT_NUMBER"]
+        limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
     if limit:
         resized_skw = skw_matches[0:limit]
@@ -558,9 +555,7 @@ def get_partial_text(fulltext):
 
     partial_text = [
         fulltext[_get_index(start):_get_index(end)]
-        for start, end in current_app.config[
-            "CLASSIFIER_PARTIAL_TEXT_PERCENTAGES"
-        ]
+        for start, end in CLASSIFIER_PARTIAL_TEXT_PERCENTAGES 
     ]
 
     return "\n".join(partial_text)

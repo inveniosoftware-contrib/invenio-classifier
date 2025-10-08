@@ -29,7 +29,10 @@ from __future__ import print_function
 import re
 import time
 
-from flask import current_app
+from .config import CLASSIFIER_AUTHOR_KW_START,CLASSIFIER_AUTHOR_KW_END,CLASSIFIER_AUTHOR_KW_SEPARATION,CLASSIFIER_VALID_SEPARATORS
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .errors import OntologyError
 
@@ -82,7 +85,7 @@ def get_single_keywords(skw_db, fulltext):
         single_keywords.setdefault(single_keyword, [[]])
         single_keywords[single_keyword][0].append(span)
 
-    current_app.logger.info(
+    logger.info(
         "Matching single keywords... %d keywords found "
         "in %.1f sec." % (len(single_keywords), get_clock() - timer_start),
     )
@@ -130,7 +133,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
         try:
             components = composite_keyword.compositeof
         except AttributeError:
-            current_app.logger.error(
+            logger.error(
                 "Cached ontology is corrupted. Please "
                 "remove the cached ontology in your temporary file."
             )
@@ -238,7 +241,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                                 del ckw_out[kw1]
                             break
 
-    current_app.logger.info(
+    logger.info(
         "Matching composite keywords... %d keywords found "
         "in %.1f sec." % (len(ckw_out), get_clock() - timer_start),
     )
@@ -254,26 +257,22 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
     timer_start = get_clock()
     out = {}
 
-    split_string = current_app.config[
-        "CLASSIFIER_AUTHOR_KW_START"
-    ].split(fulltext, 1)
+    split_string = CLASSIFIER_AUTHOR_KW_START.split(fulltext, 1)
     if len(split_string) == 1:
-        current_app.logger.info(
+        logger.info(
             "No keyword marker found when matching authors.")
         return out
 
     kw_string = split_string[1]
 
-    for regex in current_app.config["CLASSIFIER_AUTHOR_KW_END"]:
+    for regex in CLASSIFIER_AUTHOR_KW_END:
         parts = regex.split(kw_string, 1)
         kw_string = parts[0]
 
     # We separate the keywords.
-    author_keywords = current_app.config[
-        "CLASSIFIER_AUTHOR_KW_SEPARATION"
-    ].split(kw_string)
+    author_keywords = CLASSIFIER_AUTHOR_KW_SEPARATION.split(kw_string)
 
-    current_app.logger.info(
+    logger.info(
         "Matching author keywords... %d keywords found in "
         "%.1f sec." % (len(author_keywords), get_clock() - timer_start)
     )
@@ -314,7 +313,7 @@ def _get_ckw_span(fulltext, spans):
     _MAXIMUM_SEPARATOR_LENGTH = max(
         [len(_separator)
          for _separator in
-         current_app.config["CLASSIFIER_VALID_SEPARATORS"]]
+         CLASSIFIER_VALID_SEPARATORS]
     )
     if spans[0] < spans[1]:
         words = (spans[0], spans[1])
@@ -330,8 +329,7 @@ def _get_ckw_span(fulltext, spans):
     elif dist <= _MAXIMUM_SEPARATOR_LENGTH:
         separator = fulltext[words[0][1]:words[1][0] + 1]
         # Check the separator.
-        if separator.strip() in current_app.config[
-                "CLASSIFIER_VALID_SEPARATORS"]:
+        if separator.strip() in CLASSIFIER_VALID_SEPARATORS:
             return (min(words[0] + words[1]), max(words[0] + words[1]))
 
     # There is no inclusion.

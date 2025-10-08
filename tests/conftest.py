@@ -28,24 +28,11 @@
 from __future__ import absolute_import, print_function
 
 import os
-import tempfile
 
 import pytest
-from flask import Flask
-
-from invenio_classifier import InvenioClassifier
 
 
-@pytest.fixture()
-def app():
-    """Flask application fixture."""
-    instance_path = tempfile.mkdtemp()
-    app = Flask(__name__, instance_path=instance_path)
-    app.config.update(
-        TESTING=True,
-    )
-    InvenioClassifier(app)
-    return app
+
 
 
 @pytest.fixture
