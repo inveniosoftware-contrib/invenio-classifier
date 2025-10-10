@@ -98,7 +98,7 @@ def text_lines_from_local_file(document, remote=False):
                                     universal_newlines=True,
                                     stdout=subprocess.PIPE)
             (stdoutdata, stderrdata) = out.communicate()
-            lines = six.ensure_text(stdoutdata)
+            lines = six.ensure_text(stdoutdata, errors='replace')
             lines = lines.splitlines()
         else:
             filestream = codecs.open(document, "r", encoding="utf8",
