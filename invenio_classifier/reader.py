@@ -534,7 +534,7 @@ class KeywordToken(object):
             elif self._composite:
                 return self.concept.replace(':', ',')
             # default action
-        return six.ensure_text(self.concept.encode('utf8'))
+        return six.ensure_str(self.concept)
 
     def output(self, spires=False):
         """Return string representation with spires value."""
