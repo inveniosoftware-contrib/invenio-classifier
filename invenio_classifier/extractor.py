@@ -46,15 +46,16 @@ def is_pdf(document):
     """Check if a document is a PDF file and return True if is is."""
     if executable_exists("pdftotext"):
         try:
-            out = subprocess.Popen(["pdftotext", "-q", document, "-"],
-                                    universal_newlines=True,
-                                    stdout=subprocess.PIPE)
+            out = subprocess.Popen(
+                ["pdftotext", "-q", document, "-"],
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+            )
             (stdoutdata, stderrdata) = out.communicate()
             if stdoutdata:
                 return True
         except IOError as ex1:
-            logger.error("Unable to read from file %s. (%s)"
-                                            % (document, ex1.strerror))
+            logger.error("Unable to read from file %s. (%s)" % (document, ex1.strerror))
     else:
         logger.warning(
             "GNU file was not found on the system. "
@@ -67,14 +68,12 @@ def is_pdf(document):
     # Tested with file version >= 4.10. First test is secure and works
     # with file version 4.25. Second condition is tested for file
     # version 4.10.
-    file_output = os.popen('file ' + re.escape(document)).read()
+    file_output = os.popen("file " + re.escape(document)).read()
     try:
         filetype = file_output.split(":")[-1]
     except IndexError:
-        logger.error(
-            "Your version of the 'file' utility seems to be unsupported."
-        )
-        raise IncompatiblePDF2Text('Incompatible pdftotext')
+        logger.error("Your version of the 'file' utility seems to be unsupported.")
+        raise IncompatiblePDF2Text("Incompatible pdftotext")
 
     pdf = filetype.find("PDF") > -1
     # This is how it should be done however this is incompatible with
@@ -94,25 +93,22 @@ def text_lines_from_local_file(document, remote=False):
     try:
         if is_pdf(document):
             if not executable_exists("pdftotext"):
-                logger.error(
-                    "pdftotext is not available on the system."
-                )
-            out = subprocess.Popen(["pdftotext", "-q", "-enc", "UTF-8",
-                                    document, "-"],
-                                    universal_newlines=True,
-                                    stdout=subprocess.PIPE)
+                logger.error("pdftotext is not available on the system.")
+            out = subprocess.Popen(
+                ["pdftotext", "-q", "-enc", "UTF-8", document, "-"],
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+            )
             (stdoutdata, stderrdata) = out.communicate()
-            lines = six.ensure_text(stdoutdata, errors='replace')
+            lines = six.ensure_text(stdoutdata, errors="replace")
             lines = lines.splitlines()
         else:
-            filestream = codecs.open(document, "r", encoding="utf8",
-                                     errors="replace")
+            filestream = codecs.open(document, "r", encoding="utf8", errors="replace")
             # FIXME - we assume it is utf-8 encoded / that is not good
             lines = [line for line in filestream]
             filestream.close()
     except IOError as ex1:
-        logger.error("Unable to read from file %s. (%s)"
-                                 % (document, ex1.strerror))
+        logger.error("Unable to read from file %s. (%s)" % (document, ex1.strerror))
         return []
 
     # Discard lines that do not contain at least one word.
@@ -143,23 +139,22 @@ def get_plaintext_document_body(fpath, keep_layout=False):
     if os.access(fpath, os.F_OK | os.R_OK):
         # filepath OK - attempt to extract references:
         # get file type:
-        cmd_pdftotext = [
-            CLASSIFIER_PATH_GFILE, fpath
-        ]
-        pipe_pdftotext = subprocess.Popen(cmd_pdftotext,
-                                          stdout=subprocess.PIPE)
+        cmd_pdftotext = [CLASSIFIER_PATH_GFILE, fpath]
+        pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
         res_gfile = pipe_pdftotext.stdout.read()
 
-        if (res_gfile.lower().find("text") != -1) and \
-                (res_gfile.lower().find("pdf") == -1):
+        if (res_gfile.lower().find("text") != -1) and (
+            res_gfile.lower().find("pdf") == -1
+        ):
             # plain-text file: don't convert - just read in:
             f = open(fpath, "r")
             try:
                 textbody = [line.decode("utf-8") for line in f.readlines()]
             finally:
                 f.close()
-        elif (res_gfile.lower().find("pdf") != -1) or \
-                (res_gfile.lower().find("pdfa") != -1):
+        elif (res_gfile.lower().find("pdf") != -1) or (
+            res_gfile.lower().find("pdfa") != -1
+        ):
             # convert from PDF
             (textbody, status) = convert_PDF_to_plaintext(fpath, keep_layout)
         else:
@@ -191,12 +186,18 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
     # If this pattern is matched, we want to split the page-break into
     # its own line because we rely upon this for trying to strip headers
     # and footers, and for some other pattern matching.
-    p_break_in_line = re.compile(r'^\s*\f(.+)$', re.UNICODE)
+    p_break_in_line = re.compile(r"^\s*\f(.+)$", re.UNICODE)
     # build pdftotext command:
-    cmd_pdftotext = [CLASSIFIER_PATH_PDFTOTEXT,
-                     layout_option, "-q",
-                     "-enc", "UTF-8", fpath, "-"]
-    logger.debug("* %s" % ' '.join(cmd_pdftotext))
+    cmd_pdftotext = [
+        CLASSIFIER_PATH_PDFTOTEXT,
+        layout_option,
+        "-q",
+        "-enc",
+        "UTF-8",
+        fpath,
+        "-",
+    ]
+    logger.debug("* %s" % " ".join(cmd_pdftotext))
     # open pipe to pdftotext:
     pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
 
@@ -212,12 +213,10 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
             # If there was a page-break character in the same line as some
             # text, split it out into its own line so that we can later
             # try to find headers and footers:
-            doclines.append(u"\f")
+            doclines.append("\f")
             doclines.append(m_break_in_line.group(1))
 
-    logger.debug(
-        "* convert_PDF_to_plaintext found: %s lines of text" % len(doclines)
-    )
+    logger.debug("* convert_PDF_to_plaintext found: %s lines of text" % len(doclines))
 
     # finally, check conversion result not bad:
     if pdftotext_conversion_is_bad(doclines):
@@ -244,9 +243,9 @@ def pdftotext_conversion_is_bad(txtlines):
     # Numbers of 'words' and 'whitespaces' found in document:
     numWords = numSpaces = 0
     # whitespace character pattern:
-    p_space = re.compile(six.text_type(r'(\s)'), re.UNICODE)
+    p_space = re.compile(six.text_type(r"(\s)"), re.UNICODE)
     # non-whitespace 'word' pattern:
-    p_noSpace = re.compile(six.text_type(r'(\S+)'), re.UNICODE)
+    p_noSpace = re.compile(six.text_type(r"(\S+)"), re.UNICODE)
     for txtline in txtlines:
         numWords = numWords + len(p_noSpace.findall(txtline.strip()))
         numSpaces = numSpaces + len(p_space.findall(txtline.strip()))

@@ -25,133 +25,127 @@ import os
 import shutil
 import stat
 import time
+
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
 import pytest
 
-from invenio_classifier import get_keywords_from_local_file, \
-    get_keywords_from_text
+from invenio_classifier import get_keywords_from_local_file, get_keywords_from_text
 from invenio_classifier.errors import TaxonomyError
 
 
 def test_keywords(demo_taxonomy, demo_text):
     """Test keyword extraction from text."""
     out = get_keywords_from_text(
-        text_lines=[demo_text],
-        taxonomy_name=demo_taxonomy,
-        output_mode="dict"
+        text_lines=[demo_text], taxonomy_name=demo_taxonomy, output_mode="dict"
     )
     output = out.get("complete_output")
     single_keywords = output.get("single_keywords", [])
 
     assert len(single_keywords) == 3
-    assert {'keyword': "aberration", 'number': 2} in single_keywords
+    assert {"keyword": "aberration", "number": 2} in single_keywords
 
     core_keywords = output.get("core_keywords", [])
 
     assert len(core_keywords) == 2
-    assert {'keyword': "supersymmetry", 'number': 1} in core_keywords
+    assert {"keyword": "supersymmetry", "number": 1} in core_keywords
 
 
 def test_taxonomy_error(demo_text):
     """Test passing non existing taxonomy."""
     with pytest.raises(TaxonomyError):
-        out = get_keywords_from_text(
-            text_lines=[demo_text],
-            taxonomy_name="foo",
-            output_mode="dict"
+        get_keywords_from_text(
+            text_lines=[demo_text], taxonomy_name="foo", output_mode="dict"
         )
 
 
 def test_file_extration(demo_pdf_file, demo_taxonomy):
     """Test extracting keywords from PDF."""
     out = get_keywords_from_local_file(
-        demo_pdf_file,
-        taxonomy_name=demo_taxonomy,
-        output_mode="dict"
+        demo_pdf_file, taxonomy_name=demo_taxonomy, output_mode="dict"
     )
     output = out.get("complete_output")
     single_keywords = output.get("single_keywords", [])
 
     assert len(single_keywords) == 4
-    assert {'keyword': "gauge field theory Yang-Mills", 'number': 9} \
-        in single_keywords
+    assert {"keyword": "gauge field theory Yang-Mills", "number": 9} in single_keywords
 
     core_keywords = output.get("core_keywords", [])
 
     assert len(core_keywords) == 3
-    assert {'keyword': "Yang-Mills", 'number': 12} in core_keywords
+    assert {"keyword": "Yang-Mills", "number": 12} in core_keywords
 
 
-def test_author_keywords(demo_pdf_file_with_author_keywords,
-                         demo_taxonomy):
+def test_author_keywords(demo_pdf_file_with_author_keywords, demo_taxonomy):
     """Test extracting author keywords from PDF."""
     out = get_keywords_from_local_file(
         demo_pdf_file_with_author_keywords,
         taxonomy_name=demo_taxonomy,
         output_mode="dict",
-        with_author_keywords=True
+        with_author_keywords=True,
     )
     output = out.get("complete_output")
     author_keywords = output.get("author_keywords", [])
 
     assert len(author_keywords) == 4, output
-    assert {'author_keyword': 'Dyson model',
-            'matched_keywords': ['model']} in author_keywords
+    assert {
+        "author_keyword": "Dyson model",
+        "matched_keywords": ["model"],
+    } in author_keywords
 
 
-def test_funny_author_keywords(demo_pdf_file_with_funny_author_kw_sep,
-                               demo_taxonomy):
+def test_funny_author_keywords(demo_pdf_file_with_funny_author_kw_sep, demo_taxonomy):
     """Test extracting author keywords separated by '·'"""
     out = get_keywords_from_local_file(
         demo_pdf_file_with_funny_author_kw_sep,
         taxonomy_name=demo_taxonomy,
         output_mode="dict",
-        with_author_keywords=True
+        with_author_keywords=True,
     )
     output = out.get("complete_output")
     author_keywords = output.get("author_keywords", [])
 
     assert len(author_keywords) == 4, output
-    assert {'author_keyword': 'Depth cameras'} in author_keywords
+    assert {"author_keyword": "Depth cameras"} in author_keywords
 
 
 def test_composite_keywords(hep_taxonomy, pdf_with_composite_keywords):
     out = get_keywords_from_local_file(
         pdf_with_composite_keywords,
         taxonomy_name=hep_taxonomy,
-        output_mode='dict',
+        output_mode="dict",
     )
-    output = out.get('complete_output')
-    composite_keywords = output.get('composite_keywords', [])
+    output = out.get("complete_output")
+    composite_keywords = output.get("composite_keywords", [])
 
     assert len(composite_keywords) == 20, output
-    assert {'details': [64, 132],
-            'keyword': 'electronics: noise',
-            'number': 23} in composite_keywords
-
+    assert {
+        "details": [64, 132],
+        "keyword": "electronics: noise",
+        "number": 23,
+    } in composite_keywords
 
 
 def test_taxonomy_workdir(demo_text, demo_taxonomy):
     """Test grabbing taxonomy from the CLASSIFIER_WORKDIR."""
-    with patch("invenio_classifier.reader.CLASSIFIER_WORKDIR", os.path.dirname(demo_taxonomy)):
+    with patch(
+        "invenio_classifier.reader.CLASSIFIER_WORKDIR", os.path.dirname(demo_taxonomy)
+    ):
         out = get_keywords_from_text(
-            text_lines=[demo_text],
-            taxonomy_name="test.rdf",
-            output_mode="dict"
+            text_lines=[demo_text], taxonomy_name="test.rdf", output_mode="dict"
         )
         output = out.get("complete_output")
         single_keywords = output.get("single_keywords", [])
 
         assert len(single_keywords) == 3
-        assert {'keyword': "aberration", 'number': 2} in single_keywords
+        assert {"keyword": "aberration", "number": 2} in single_keywords
 
         core_keywords = output.get("core_keywords", [])
 
         assert len(core_keywords) == 2
-        assert {'keyword': "supersymmetry", 'number': 1} in core_keywords
+        assert {"keyword": "supersymmetry", "number": 1} in core_keywords
 
 
 def test_rebuild_cache(demo_taxonomy):
@@ -159,7 +153,7 @@ def test_rebuild_cache(demo_taxonomy):
     from invenio_classifier.reader import (
         _get_ontology,
         _get_cache_path,
-        get_regular_expressions
+        get_regular_expressions,
     )
 
     info = _get_ontology(demo_taxonomy)
@@ -173,8 +167,7 @@ def test_rebuild_cache(demo_taxonomy):
         ctime = -1
 
     time.sleep(0.5)  # sleep a bit for timing issues
-    rex = get_regular_expressions(
-        demo_taxonomy, rebuild=True)
+    rex = get_regular_expressions(demo_taxonomy, rebuild=True)
 
     assert os.path.exists(cache)
 
@@ -183,21 +176,23 @@ def test_rebuild_cache(demo_taxonomy):
 
     assert len(rex[0]) + len(rex[1]) == 63
 
+
 @pytest.mark.xfail
 def test_cache_accessibility(demo_taxonomy):
     """Test taxonomy cache accessibility/writability."""
     from invenio_classifier.reader import (
-        _get_ontology, get_regular_expressions, _get_cache_path
+        _get_ontology,
+        get_regular_expressions,
+        _get_cache_path,
     )
 
     assert os.path.exists(demo_taxonomy)
 
     # we will do tests with a copy of test taxonomy, in case anything goes
     # wrong...
-    orig_name, orig_taxonomy_path, orig_taxonomy_url = _get_ontology(
-        demo_taxonomy)
+    orig_name, orig_taxonomy_path, orig_taxonomy_url = _get_ontology(demo_taxonomy)
 
-    demo_taxonomy = demo_taxonomy + '.copy.rdf'
+    demo_taxonomy = demo_taxonomy + ".copy.rdf"
 
     shutil.copy(orig_taxonomy_path, demo_taxonomy)
 
@@ -215,86 +210,66 @@ def test_cache_accessibility(demo_taxonomy):
     os.chmod(cache, 000)
 
     with pytest.raises(TaxonomyError):
-        get_regular_expressions(
-            demo_taxonomy, rebuild=False, no_cache=False
-        )
+        get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
 
     # set cache unreadable and test writing
     os.chmod(cache, 000)
 
     with pytest.raises(TaxonomyError):
-        get_regular_expressions(
-            demo_taxonomy, rebuild=True, no_cache=False
-        )
+        get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
 
     # set cache readable and test writing
     os.chmod(cache, 600)
 
     with pytest.raises(TaxonomyError):
-        get_regular_expressions(
-            demo_taxonomy, rebuild=True, no_cache=False
-        )
+        get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
 
     # set cache writable only
     os.chmod(cache, 200)
 
-    get_regular_expressions(
-        demo_taxonomy, rebuild=True, no_cache=False)
+    get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
 
-    get_regular_expressions(
-        demo_taxonomy, rebuild=False, no_cache=False)
+    get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
 
     # set cache readable/writable but corrupted (must rebuild itself)
     os.chmod(cache, 600)
     os.remove(cache)
-    open(cache, 'w').close()
+    open(cache, "w").close()
 
-    get_regular_expressions(
-        demo_taxonomy, rebuild=False, no_cache=False)
+    get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
 
     # set cache readable/writable but corrupted (must rebuild itself)
-    open(cache, 'w').close()
+    open(cache, "w").close()
     try:
-        os.rename(demo_taxonomy, demo_taxonomy + 'x')
-        open(demo_taxonomy, 'w').close()
+        os.rename(demo_taxonomy, demo_taxonomy + "x")
+        open(demo_taxonomy, "w").close()
         with pytest.raises(TaxonomyError):
-            get_regular_expressions(
-                demo_taxonomy,
-                rebuild=False,
-                no_cache=False
-            )
+            get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
     finally:
-        os.rename(demo_taxonomy + 'x', demo_taxonomy)
+        os.rename(demo_taxonomy + "x", demo_taxonomy)
 
     # make cache ok, but corrupt source
-    get_regular_expressions(
-        demo_taxonomy, rebuild=True, no_cache=False)
+    get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
 
     try:
-        os.rename(demo_taxonomy, demo_taxonomy + 'x')
-        open(demo_taxonomy, 'w').close()
-        time.sleep(.1)
+        os.rename(demo_taxonomy, demo_taxonomy + "x")
+        open(demo_taxonomy, "w").close()
+        time.sleep(0.1)
         # touch the taxonomy to be older
         os.utime(cache, (time.time() + 100, time.time() + 100))
-        get_regular_expressions(
-            demo_taxonomy, rebuild=False, no_cache=False)
+        get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
     finally:
-        os.rename(demo_taxonomy + 'x', demo_taxonomy)
+        os.rename(demo_taxonomy + "x", demo_taxonomy)
 
     # make cache ok (but old), and corrupt source
-    get_regular_expressions(
-        demo_taxonomy, rebuild=True, no_cache=False)
+    get_regular_expressions(demo_taxonomy, rebuild=True, no_cache=False)
     try:
-        os.rename(demo_taxonomy, demo_taxonomy + 'x')
-        open(demo_taxonomy, 'w').close()
+        os.rename(demo_taxonomy, demo_taxonomy + "x")
+        open(demo_taxonomy, "w").close()
         with pytest.raises(TaxonomyError):
-            get_regular_expressions(
-                demo_taxonomy,
-                rebuild=False,
-                no_cache=False
-            )
+            get_regular_expressions(demo_taxonomy, rebuild=False, no_cache=False)
     finally:
-        os.rename(demo_taxonomy + 'x', demo_taxonomy)
+        os.rename(demo_taxonomy + "x", demo_taxonomy)
 
     name, demo_taxonomy, taxonomy_url = _get_ontology(demo_taxonomy)
     cache = _get_cache_path(name)

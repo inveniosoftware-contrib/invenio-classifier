@@ -25,38 +25,42 @@ import six
 import time
 
 
-def encode_for_xml(text, wash=False, xml_version='1.0', quote=False):
+def encode_for_xml(text, wash=False, xml_version="1.0", quote=False):
     """Encode special characters in a text so that it would be XML-compliant.
 
     :param text: text to encode
     :return: an encoded text
     """
-    text = text.replace('&', '&amp;')
-    text = text.replace('<', '&lt;')
+    text = text.replace("&", "&amp;")
+    text = text.replace("<", "&lt;")
     if quote:
-        text = text.replace('"', '&quot;')
+        text = text.replace('"', "&quot;")
     if wash:
         text = wash_for_xml(text, xml_version=xml_version)
     return text
 
+
 try:
     six.unichr(0x100000)
     RE_ALLOWED_XML_1_0_CHARS = re.compile(
-        u'[^\U00000009\U0000000A\U0000000D\U00000020-'
-        u'\U0000D7FF\U0000E000-\U0000FFFD\U00010000-\U0010FFFF]')
+        "[^\U00000009\U0000000a\U0000000d\U00000020-"
+        "\U0000d7ff\U0000e000-\U0000fffd\U00010000-\U0010ffff]"
+    )
     RE_ALLOWED_XML_1_1_CHARS = re.compile(
-        u'[^\U00000001-\U0000D7FF\U0000E000-\U0000FFFD\U00010000-\U0010FFFF]')
+        "[^\U00000001-\U0000d7ff\U0000e000-\U0000fffd\U00010000-\U0010ffff]"
+    )
 except ValueError:
     # oops, we are running on a narrow UTF/UCS Python build,
     # so we have to limit the UTF/UCS char range:
     RE_ALLOWED_XML_1_0_CHARS = re.compile(
-        u'[^\U00000009\U0000000A\U0000000D\U00000020-'
-        u'\U0000D7FF\U0000E000-\U0000FFFD]')
+        "[^\U00000009\U0000000a\U0000000d\U00000020-" "\U0000d7ff\U0000e000-\U0000fffd]"
+    )
     RE_ALLOWED_XML_1_1_CHARS = re.compile(
-        u'[^\U00000001-\U0000D7FF\U0000E000-\U0000FFFD]')
+        "[^\U00000001-\U0000d7ff\U0000e000-\U0000fffd]"
+    )
 
 
-def wash_for_xml(text, xml_version='1.0'):
+def wash_for_xml(text, xml_version="1.0"):
     """Remove any character which isn't a allowed characters for XML.
 
     The allowed characters depends on the version
@@ -69,12 +73,14 @@ def wash_for_xml(text, xml_version='1.0'):
     :param xml_version: version of the XML for which we wash the
         input. Value for this parameter can be '1.0' or '1.1'
     """
-    if xml_version == '1.0':
-        return RE_ALLOWED_XML_1_0_CHARS.sub(
-            '', six.text_type(text, 'utf-8')).encode('utf-8')
+    if xml_version == "1.0":
+        return RE_ALLOWED_XML_1_0_CHARS.sub("", six.text_type(text, "utf-8")).encode(
+            "utf-8"
+        )
     else:
-        return RE_ALLOWED_XML_1_1_CHARS.sub(
-            '', six.text_type(text, 'utf-8')).encode('utf-8')
+        return RE_ALLOWED_XML_1_1_CHARS.sub("", six.text_type(text, "utf-8")).encode(
+            "utf-8"
+        )
 
 
 def get_clock():

@@ -29,7 +29,7 @@
 #    $ python setup.py extract_messages
 #    $ python setup.py init_catalog -l <lang>
 #    $ python setup.py compile_catalog
-# 2) Ensure project has been created on Transifex under the 
+# 2) Ensure project has been created on Transifex under the
 #    inveniosoftware-contrib organisation.
 # 3) Install the transifex-client
 #    $ pip install transifex-client

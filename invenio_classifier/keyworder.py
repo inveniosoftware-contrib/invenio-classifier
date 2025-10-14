@@ -27,16 +27,21 @@ keywords and author keywords.
 from __future__ import print_function
 
 import re
-import time
 
-from .config import CLASSIFIER_AUTHOR_KW_START,CLASSIFIER_AUTHOR_KW_END,CLASSIFIER_AUTHOR_KW_SEPARATION,CLASSIFIER_VALID_SEPARATORS
+from .config import (
+    CLASSIFIER_AUTHOR_KW_START,
+    CLASSIFIER_AUTHOR_KW_END,
+    CLASSIFIER_AUTHOR_KW_SEPARATION,
+    CLASSIFIER_VALID_SEPARATORS,
+)
 import logging
-
-logger = logging.getLogger(__name__)
 
 from .errors import OntologyError
 
 from .utils import get_clock
+
+logger = logging.getLogger(__name__)
+
 
 def get_single_keywords(skw_db, fulltext):
     """Find single keywords in the fulltext.
@@ -63,13 +68,15 @@ def get_single_keywords(skw_db, fulltext):
 
                 # FIXME: expensive!!!
                 # Remove the previous records contained by this span
-                records = [record for record in records
-                           if not _contains_span(span, record[0])]
+                records = [
+                    record for record in records if not _contains_span(span, record[0])
+                ]
 
                 add = True
                 for previous_record in records:
-                    if ((span, single_keyword) == previous_record or
-                            _contains_span(previous_record[0], span)):
+                    if (span, single_keyword) == previous_record or _contains_span(
+                        previous_record[0], span
+                    ):
                         # Match is contained by a previous match.
                         add = False
                         break
@@ -137,7 +144,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                 "Cached ontology is corrupted. Please "
                 "remove the cached ontology in your temporary file."
             )
-            raise OntologyError('Cached ontology is corrupted.')
+            raise OntologyError("Cached ontology is corrupted.")
 
         spans = []
         try:
@@ -155,8 +162,11 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
             else:
                 previous_spans = spans[index]
 
-            for new_span in [(span0, colmd1) for span0 in previous_spans
-                             for colmd1 in spans[index + 1]]:
+            for new_span in [
+                (span0, colmd1)
+                for span0 in previous_spans
+                for colmd1 in spans[index + 1]
+            ]:
                 span = _get_ckw_span(fulltext, new_span)
                 if span is not None:
                     ckw_spans.append(span)
@@ -171,8 +181,9 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                             _ckw_spans.append(s)
                 ckw_spans = _ckw_spans
 
-        for matched_span in [mspan for mspan in ckw_spans
-                             if mspan not in matched_spans]:
+        for matched_span in [
+            mspan for mspan in ckw_spans if mspan not in matched_spans
+        ]:
             ckw_count += 1
             matched_spans.append(matched_span)
 
@@ -203,7 +214,8 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
     _ckw_base = filter(lambda x: len(x.compositeof) == 2, ckw_out.keys())
     _ckw_extended = sorted(
         filter(lambda x: len(x.compositeof) > 2, ckw_out.keys()),
-        key=lambda x: len(x.compositeof))
+        key=lambda x: len(x.compositeof),
+    )
     if _ckw_extended:
         candidates = []
         for kw1 in _ckw_base:
@@ -259,8 +271,7 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
     split_string = CLASSIFIER_AUTHOR_KW_START.split(fulltext, 1)
     if len(split_string) == 1:
-        logger.info(
-            "No keyword marker found when matching authors.")
+        logger.info("No keyword marker found when matching authors.")
         return out
 
     kw_string = split_string[1]
@@ -280,18 +291,17 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
     for kw in author_keywords:
         # If the author keyword is an acronym with capital letters
         # separated by points, remove the points.
-        if re.match('([A-Z].)+$', kw):
-            kw = kw.replace('.', '')
+        if re.match("([A-Z].)+$", kw):
+            kw = kw.replace(".", "")
 
         # Drop trailing dots such as those in the last keyword.
-        if kw.endswith('.'):
+        if kw.endswith("."):
             kw = kw[:-1]
 
         # First try with the keyword as such, then lower it.
-        kw_with_spaces = ' %s ' % kw
+        kw_with_spaces = " %s " % kw
         matching_skw = get_single_keywords(skw_db, kw_with_spaces)
-        matching_ckw = get_composite_keywords(ckw_db, kw_with_spaces,
-                                              matching_skw)
+        matching_ckw = get_composite_keywords(ckw_db, kw_with_spaces, matching_skw)
 
         if matching_skw or matching_ckw:
             out[kw] = (matching_skw, matching_ckw)
@@ -299,9 +309,8 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
         lowkw = kw.lower()
 
-        matching_skw = get_single_keywords(skw_db, ' %s ' % lowkw)
-        matching_ckw = get_composite_keywords(ckw_db, ' %s ' % lowkw,
-                                              matching_skw)
+        matching_skw = get_single_keywords(skw_db, " %s " % lowkw)
+        matching_ckw = get_composite_keywords(ckw_db, " %s " % lowkw, matching_skw)
 
         out[kw] = (matching_skw, matching_ckw)
 
@@ -311,9 +320,7 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 def _get_ckw_span(fulltext, spans):
     """Return the span of the composite keyword if it is valid."""
     _MAXIMUM_SEPARATOR_LENGTH = max(
-        [len(_separator)
-         for _separator in
-         CLASSIFIER_VALID_SEPARATORS]
+        [len(_separator) for _separator in CLASSIFIER_VALID_SEPARATORS]
     )
     if spans[0] < spans[1]:
         words = (spans[0], spans[1])
@@ -324,10 +331,12 @@ def _get_ckw_span(fulltext, spans):
 
     if dist == 0:
         # Two keywords are adjacent. We have a match.
-        return (min(words[0] + words[1]),
-                max(words[0] + words[1]))  # FIXME: huh, this is a bug?! a sum?
+        return (
+            min(words[0] + words[1]),
+            max(words[0] + words[1]),
+        )  # FIXME: huh, this is a bug?! a sum?
     elif dist <= _MAXIMUM_SEPARATOR_LENGTH:
-        separator = fulltext[words[0][1]:words[1][0] + 1]
+        separator = fulltext[words[0][1] : words[1][0] + 1]
         # Check the separator.
         if separator.strip() in CLASSIFIER_VALID_SEPARATORS:
             return (min(words[0] + words[1]), max(words[0] + words[1]))
@@ -338,7 +347,7 @@ def _get_ckw_span(fulltext, spans):
 
 def _contains_span(span0, span1):
     """Return true if span0 contains span1, False otherwise."""
-    if (span0 == span1 or span0[0] > span1[0] or span0[1] < span1[1]):
+    if span0 == span1 or span0[0] > span1[0] or span0[1] < span1[1]:
         return False
     return True
 
