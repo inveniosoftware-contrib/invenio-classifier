@@ -23,15 +23,10 @@ This module also provides the utility 'is_pdf' that uses GNU file in order to
 determine if a local file is a PDF file.
 """
 
-from __future__ import unicode_literals
-
 import codecs
 import os
 import re
 import subprocess
-
-import six
-
 
 from .errors import IncompatiblePDF2Text
 from .config import CLASSIFIER_PATH_GFILE, CLASSIFIER_PATH_PDFTOTEXT
@@ -99,9 +94,8 @@ def text_lines_from_local_file(document, remote=False):
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
             )
-            (stdoutdata, stderrdata) = out.communicate()
-            lines = six.ensure_text(stdoutdata, errors="replace")
-            lines = lines.splitlines()
+            (stdoutdata, _) = out.communicate()
+            lines = stdoutdata.splitlines()
         else:
             filestream = codecs.open(document, "r", encoding="utf8", errors="replace")
             # FIXME - we assume it is utf-8 encoded / that is not good
@@ -123,6 +117,7 @@ def executable_exists(executable):
     return False
 
 
+# TODO: Potential bug in python3, to be checked!
 def get_plaintext_document_body(fpath, keep_layout=False):
     """Given a file-path to a full-text, return a list of unicode strings.
 
@@ -243,9 +238,9 @@ def pdftotext_conversion_is_bad(txtlines):
     # Numbers of 'words' and 'whitespaces' found in document:
     numWords = numSpaces = 0
     # whitespace character pattern:
-    p_space = re.compile(six.text_type(r"(\s)"), re.UNICODE)
+    p_space = re.compile(r"(\s)", re.UNICODE)
     # non-whitespace 'word' pattern:
-    p_noSpace = re.compile(six.text_type(r"(\S+)"), re.UNICODE)
+    p_noSpace = re.compile(r"(\S+)", re.UNICODE)
     for txtline in txtlines:
         numWords = numWords + len(p_noSpace.findall(txtline.strip()))
         numSpaces = numSpaces + len(p_space.findall(txtline.strip()))

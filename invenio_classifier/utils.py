@@ -20,7 +20,6 @@
 """Contains utils for classifier."""
 
 import re
-import sys
 import six
 import time
 
@@ -84,6 +83,4 @@ def wash_for_xml(text, xml_version="1.0"):
 
 
 def get_clock():
-    if sys.version_info < (3, 3):
-        return time.clock()
     return time.perf_counter()

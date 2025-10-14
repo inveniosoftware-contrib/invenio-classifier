@@ -25,13 +25,9 @@ import os
 import shutil
 import stat
 import time
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
 import pytest
 
+from unittest.mock import patch
 from invenio_classifier import get_keywords_from_local_file, get_keywords_from_text
 from invenio_classifier.errors import TaxonomyError
 

@@ -47,6 +47,14 @@ Invenio module for record classification.
 * Documentation: https://pythonhosted.org/invenio-classifier
 
 
+Local installation
+===================
+
+```shell
+docker build -t invenio-classifier .
+docker run -it invenio-classifier
+```
+
 Features
 ========
 

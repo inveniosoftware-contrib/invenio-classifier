@@ -19,8 +19,6 @@
 
 """Classifier API - fulltext keyword extractor."""
 
-from __future__ import print_function
-
 import os
 import re
 

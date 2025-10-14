@@ -19,17 +19,9 @@
 
 """Classifier can be configured in different ways."""
 
-from __future__ import unicode_literals
-
 import re
 import os
-
-try:
-    from shutil import which
-except ImportError:
-    # CPython <3.3
-    from distutils.spawn import find_executable as which
-
+from shutil import which
 
 CLASSIFIER_WORKDIR = None
 """Path to directory for classifier related files, default: instance_path."""

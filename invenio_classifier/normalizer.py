@@ -27,12 +27,8 @@ This modules uses the refextract module of BibEdit in order to find the
 references section and to replace Unicode characters.
 """
 
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import re
 
-from six import iteritems
 from .find import find_end_of_reference_section, find_reference_section
 
 import logging
@@ -676,7 +672,7 @@ def replace_undesirable_characters(line):
     for bad_string, replacement in UNDESIRABLE_STRING_REPLACEMENTS:
         line = line.replace(bad_string, replacement)
 
-    for bad_char, replacement in iteritems(UNDESIRABLE_CHAR_REPLACEMENTS):
+    for bad_char, replacement in UNDESIRABLE_CHAR_REPLACEMENTS.items():
         line = line.replace(bad_char, replacement)
 
     return line
@@ -684,7 +680,7 @@ def replace_undesirable_characters(line):
 
 def _replace_greek_characters(line):
     """Replace greek characters in a string."""
-    for greek_char, replacement in iteritems(_GREEK_REPLACEMENTS):
+    for greek_char, replacement in _GREEK_REPLACEMENTS.items():
         try:
             line = line.replace(greek_char, replacement)
         except UnicodeDecodeError:

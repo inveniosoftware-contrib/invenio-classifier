@@ -19,14 +19,8 @@
 
 """Contains regexes for reference extraction."""
 
-from __future__ import unicode_literals
-
-import sys
 import re
 from datetime import datetime
-
-import six
-from six import iteritems
 
 # Sep
 re_sep = r"\s*[,\s:-]\s*"
@@ -262,7 +256,7 @@ def compute_arxiv_re(report_pattern, report_number):
     return report_re, report_number
 
 
-RE_OLD_ARXIV = [compute_arxiv_re(*i) for i in iteritems(old_arxiv)]
+RE_OLD_ARXIV = [compute_arxiv_re(*i) for i in old_arxiv.items()]
 
 
 def compute_years(start_year=1991):
@@ -871,13 +865,13 @@ def get_reference_section_title_patterns():
         "citations",
         "literaturverzeichnis",
     ]
-    sect_marker = six.text_type(
+    sect_marker = (
         r"^\s*([\[\-\{\(])?\s*"
         r"((\w|\d){1,5}([\.\-\,](\w|\d){1,5})?\s*"
         r"[\.\-\}\)\]]\s*)?"
-        r"(?P<title>",
+        r"(?P<title>"
     )
-    sect_marker1 = six.text_type(r"^(\d){1,3}\s*(?P<title>")
+    sect_marker1 = r"^(\d){1,3}\s*(?P<title>"
     line_end = (
         r"(\s*s\s*e\s*c\s*t\s*i\s*o\s*n\s*)?)([\)\}\]])?"
         r"($|\s*[\[\{\(\<]\s*[1a-z]\s*[\}\)\>\]]|\:$)"
@@ -911,11 +905,7 @@ def get_reference_line_numeration_marker_patterns(prefix=""):
     :param prefix: (string) the possible prefix to a reference line
     :return: (list) of compiled regex patterns.
     """
-    title = ""
-    if (sys.version_info[0] >= 3 and type(prefix) is str) or (
-        sys.version_info[0] < 3 and type(prefix) in (str, unicode)  # noqa F821
-    ):
-        title = prefix
+    title = prefix if isinstance(prefix, str) else ""
     g_name = "(?P<mark>"
     g_close = ")"
     space = r"\s*"

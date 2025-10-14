@@ -19,8 +19,6 @@
 
 """Classifier acronym analyzer."""
 
-from __future__ import print_function
-
 import re
 
 ACRONYM_BRACKETS_REGEX = re.compile(r"[([] ?(([a-zA-Z]\.?){2,})s? ?[)\]]")

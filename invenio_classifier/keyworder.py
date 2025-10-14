@@ -24,8 +24,6 @@ different methods for 3 different types of keywords: single keywords, composite
 keywords and author keywords.
 """
 
-from __future__ import print_function
-
 import re
 
 from .config import (

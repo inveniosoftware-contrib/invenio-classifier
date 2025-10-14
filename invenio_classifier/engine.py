@@ -23,12 +23,8 @@ These sources can be PDF documents, general text, path to files or lines of
 text and keywords are outputted in different formats (text, MARCXML or HTML).
 """
 
-from __future__ import print_function
-
 import os
 from functools import cmp_to_key
-
-from six import iteritems
 
 from .acronymer import get_acronyms
 from .keyworder import get_author_keywords, get_composite_keywords, get_single_keywords
@@ -149,7 +145,7 @@ def get_keywords_output(
         categories[w[0].concept] = w[0].type
 
     categories = [
-        {"keyword": key, "category": value} for key, value in iteritems(categories)
+        {"keyword": key, "category": value} for key, value in categories.items()
     ]
 
     complete_output = _output_complete(
@@ -404,7 +400,7 @@ def _get_singlekws(skw_matches, spires=False):
     output = {}
     for single_keyword, info in skw_matches:
         output[single_keyword.output(spires)] = len(info[0])
-    output = [{"keyword": key, "number": value} for key, value in iteritems(output)]
+    output = [{"keyword": key, "number": value} for key, value in output.items()]
     return sorted(output, key=lambda x: x["number"], reverse=True)
 
 
@@ -423,7 +419,7 @@ def _get_compositekws(ckw_matches, spires=False):
         }
     output = [
         {"keyword": key, "number": value["number"], "details": value["details"]}
-        for key, value in iteritems(output)
+        for key, value in output.items()
     ]
     return sorted(output, key=lambda x: x["number"], reverse=True)
 
@@ -432,15 +428,14 @@ def _get_acronyms(acronyms):
     """Return a formatted list of acronyms."""
     acronyms_str = {}
     if acronyms:
-        for acronym, expansions in iteritems(acronyms):
+        for acronym, expansions in acronyms.items():
             expansions_str = ", ".join(
                 ["%s (%d)" % expansion for expansion in expansions]
             )
             acronyms_str[acronym] = expansions_str
 
     return [
-        {"acronym": str(key), "expansion": value.encode("utf8")}
-        for key, value in iteritems(acronyms_str)
+        {"acronym": str(key), "expansion": value} for key, value in acronyms_str.items()
     ]
 
 
@@ -491,7 +486,7 @@ def _get_fieldcodes(skw_matches, ckw_matches, spires=False):
     for fieldcode, keywords in fieldcodes.items():
         output[fieldcode] = ", ".join(keywords)
 
-    return [{"fieldcode": key, "keywords": value} for key, value in iteritems(output)]
+    return [{"fieldcode": key, "keywords": value} for key, value in output.items()]
 
 
 def _get_core_keywords(skw_matches, ckw_matches, spires=False):
@@ -529,7 +524,7 @@ def _get_core_keywords(skw_matches, ckw_matches, spires=False):
                 if c.core:
                     output[c.output(spires)] = info[1][i]
                 i += 1
-    output = [{"keyword": key, "number": value} for key, value in iteritems(output)]
+    output = [{"keyword": key, "number": value} for key, value in output.items()]
     return sorted(output, key=lambda x: x["number"], reverse=True)
 
 
@@ -549,7 +544,7 @@ def clean_before_output(kw_matches):
     """
     filtered_kw_matches = {}
 
-    for kw_match, info in iteritems(kw_matches):
+    for kw_match, info in kw_matches.items():
         if not kw_match.nostandalone:
             filtered_kw_matches[kw_match] = info
 
