@@ -45,16 +45,16 @@ CLASSIFIER_DEFAULT_OUTPUT_NUMBER = 20
 This limits single keywords, composite keywords, and acronyms - not author
 keywords."""
 
-CLASSIFIER_RECORD_KEYWORD_FIELD = '6531_'
+CLASSIFIER_RECORD_KEYWORD_FIELD = "6531_"
 """The main marc xml field where to find/save the keywords."""
 
-CLASSIFIER_RECORD_KEYWORD_OTHER_FIELDS = ['6950_']
+CLASSIFIER_RECORD_KEYWORD_OTHER_FIELDS = ["6950_"]
 """Other fields to take from the marc xml when generating list of keywords."""
 
-CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD = ''
+CLASSIFIER_RECORD_KEYWORD_AUTHOR_FIELD = ""
 """Where to save author supplied keywords."""
 
-CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD = ''
+CLASSIFIER_RECORD_KEYWORD_ACRONYM_FIELD = ""
 """Where to save extracted acronyms."""
 
 CLASSIFIER_PARTIAL_TEXT_PERCENTAGES = ((0, 20), (40, 60))
@@ -62,14 +62,41 @@ CLASSIFIER_PARTIAL_TEXT_PERCENTAGES = ((0, 20), (40, 60))
 Each tuple contains the start and end percentages of a section."""
 
 CLASSIFIER_INVARIABLE_WORDS = (
-    "any", "big", "chi", "der", "eta", "few",
-    "low", "new", "non", "off", "one", "out",
-    "phi", "psi", "rho", "tau",
-    "two", "van", "von", "hard", "weak", "four",
-    "anti", "zero", "sinh",
-    "open", "high", "data", "dark", "free",
-    "flux", "fine", "final", "heavy",
-    "strange"
+    "any",
+    "big",
+    "chi",
+    "der",
+    "eta",
+    "few",
+    "low",
+    "new",
+    "non",
+    "off",
+    "one",
+    "out",
+    "phi",
+    "psi",
+    "rho",
+    "tau",
+    "two",
+    "van",
+    "von",
+    "hard",
+    "weak",
+    "four",
+    "anti",
+    "zero",
+    "sinh",
+    "open",
+    "high",
+    "data",
+    "dark",
+    "free",
+    "flux",
+    "fine",
+    "final",
+    "heavy",
+    "strange",
 )
 """If the keyword belongs in 'INVARIABLE_WORDS', we return it without
 any change."""
@@ -164,17 +191,29 @@ CLASSIFIER_WORD_WRAP = r"[^\w-]%s[^\w-]"
 """Regular expression to wrap words."""
 
 CLASSIFIER_VALID_SEPARATORS = (
-    "of", "of a", "of an", "of the", "of this", "of one", "of two", "of three",
-    "of new", "of other", "of many", "of both", "of these", "of each", "is",
-    "the"
+    "of",
+    "of a",
+    "of an",
+    "of the",
+    "of this",
+    "of one",
+    "of two",
+    "of three",
+    "of new",
+    "of other",
+    "of many",
+    "of both",
+    "of these",
+    "of each",
+    "is",
+    "the",
 )
 """When searching for composite keywords, we allow two keywords separated by
 one of the component of 'VALID_SEPARATORS' to form a composite keyword. These
 separators contain also the punctuation."""
 
 
-CLASSIFIER_AUTHOR_KW_START = \
-    re.compile(r"(?i)key[ -]*words?[a-z ]*[.:] *")
+CLASSIFIER_AUTHOR_KW_START = re.compile(r"(?i)key[ -]*words?[a-z ]*[.:] *")
 
 CLASSIFIER_AUTHOR_KW_END = (
     re.compile(r"\n"),

@@ -28,23 +28,37 @@ from .config import CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
 import logging
 
-logger = logging.getLogger(__name__)
 
-from .engine import clean_before_output, extract_abbreviations, \
-    extract_author_keywords, extract_composite_keywords, \
-    extract_single_keywords, filter_core_keywords, get_keywords_output, \
-    get_partial_text
+from .engine import (
+    clean_before_output,
+    extract_abbreviations,
+    extract_author_keywords,
+    extract_composite_keywords,
+    extract_single_keywords,
+    filter_core_keywords,
+    get_keywords_output,
+    get_partial_text,
+)
 from .extractor import get_plaintext_document_body, text_lines_from_local_file
 from .normalizer import cut_references, normalize_fulltext
 from .reader import get_cache, get_regular_expressions, set_cache
 
+logger = logging.getLogger(__name__)
+
 
 def output_keywords_for_sources(
-        input_sources, taxonomy_name, output_mode="text",
-        output_limit=None, spires=False,
-        match_mode="full", no_cache=False, with_author_keywords=False,
-        rebuild_cache=False, only_core_tags=False, extract_acronyms=False,
-        **kwargs):
+    input_sources,
+    taxonomy_name,
+    output_mode="text",
+    output_limit=None,
+    spires=False,
+    match_mode="full",
+    no_cache=False,
+    with_author_keywords=False,
+    rebuild_cache=False,
+    only_core_tags=False,
+    extract_acronyms=False,
+):
     """Output the keywords for each source in sources."""
     if output_limit is None:
         output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
@@ -61,11 +75,7 @@ def output_keywords_for_sources(
         for line in text_lines:
             word_nb += len(re.findall(r"\S+", line))
 
-        logger.info(
-            "Remote file has %d lines and %d words.".format(
-                line_nb, word_nb
-            )
-        )
+        logger.info("Remote file has %d lines and %d words." % (line_nb, word_nb))
         return get_keywords_from_text(
             text_lines,
             taxonomy_name,
@@ -77,7 +87,7 @@ def output_keywords_for_sources(
             with_author_keywords=with_author_keywords,
             rebuild_cache=rebuild_cache,
             only_core_tags=only_core_tags,
-            extract_acronyms=extract_acronyms
+            extract_acronyms=extract_acronyms,
         )
 
     # Get the fulltext for each source.
@@ -87,7 +97,7 @@ def output_keywords_for_sources(
         source = ""
         if os.path.isdir(entry):
             for filename in os.listdir(entry):
-                if filename.startswith('.'):
+                if filename.startswith("."):
                     continue
                 filename = os.path.join(entry, filename)
                 if os.path.isfile(filename):
@@ -103,6 +113,7 @@ def output_keywords_for_sources(
         else:
             # Treat as a URL.
             from invenio_utils.filedownload import download_url
+
             local_file = download_url(entry)
             text_lines, dummy = get_plaintext_document_body(local_file)
             if text_lines:
@@ -111,10 +122,18 @@ def output_keywords_for_sources(
 
 
 def get_keywords_from_local_file(
-        local_file, taxonomy_name, output_mode="text",
-        output_limit=None, spires=False,
-        match_mode="full", no_cache=False, with_author_keywords=False,
-        rebuild_cache=False, only_core_tags=False, extract_acronyms=False):
+    local_file,
+    taxonomy_name,
+    output_mode="text",
+    output_limit=None,
+    spires=False,
+    match_mode="full",
+    no_cache=False,
+    with_author_keywords=False,
+    rebuild_cache=False,
+    only_core_tags=False,
+    extract_acronyms=False,
+):
     """Output keywords reading a local file.
 
     Arguments and output are the same as for :see: get_keywords_from_text().
@@ -122,28 +141,37 @@ def get_keywords_from_local_file(
     if output_limit is None:
         output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
-    logger.info(
-        "Analyzing keywords for local file %s." % local_file)
+    logger.info("Analyzing keywords for local file %s." % local_file)
     text_lines = text_lines_from_local_file(local_file)
 
-    return get_keywords_from_text(text_lines,
-                                  taxonomy_name,
-                                  output_mode=output_mode,
-                                  output_limit=output_limit,
-                                  spires=spires,
-                                  match_mode=match_mode,
-                                  no_cache=no_cache,
-                                  with_author_keywords=with_author_keywords,
-                                  rebuild_cache=rebuild_cache,
-                                  only_core_tags=only_core_tags,
-                                  extract_acronyms=extract_acronyms)
+    return get_keywords_from_text(
+        text_lines,
+        taxonomy_name,
+        output_mode=output_mode,
+        output_limit=output_limit,
+        spires=spires,
+        match_mode=match_mode,
+        no_cache=no_cache,
+        with_author_keywords=with_author_keywords,
+        rebuild_cache=rebuild_cache,
+        only_core_tags=only_core_tags,
+        extract_acronyms=extract_acronyms,
+    )
 
 
-def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
-                           output_limit=None,
-                           spires=False, match_mode="full", no_cache=False,
-                           with_author_keywords=False, rebuild_cache=False,
-                           only_core_tags=False, extract_acronyms=False):
+def get_keywords_from_text(
+    text_lines,
+    taxonomy_name,
+    output_mode="text",
+    output_limit=None,
+    spires=False,
+    match_mode="full",
+    no_cache=False,
+    with_author_keywords=False,
+    rebuild_cache=False,
+    only_core_tags=False,
+    extract_acronyms=False,
+):
     """Extract keywords from the list of strings.
 
     :param text_lines: list of strings (will be normalized before being
@@ -167,10 +195,12 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
 
     cache = get_cache(taxonomy_name)
     if not cache:
-        set_cache(taxonomy_name,
-                  get_regular_expressions(taxonomy_name,
-                                          rebuild=rebuild_cache,
-                                          no_cache=no_cache))
+        set_cache(
+            taxonomy_name,
+            get_regular_expressions(
+                taxonomy_name, rebuild=rebuild_cache, no_cache=no_cache
+            ),
+        )
         cache = get_cache(taxonomy_name)
     _skw = cache[0]
     _ckw = cache[1]
@@ -187,12 +217,10 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
         acronyms = extract_abbreviations(fulltext)
 
     single_keywords = extract_single_keywords(_skw, fulltext)
-    composite_keywords = extract_composite_keywords(
-        _ckw, fulltext, single_keywords)
+    composite_keywords = extract_composite_keywords(_ckw, fulltext, single_keywords)
 
     if only_core_tags:
-        single_keywords = clean_before_output(
-            filter_core_keywords(single_keywords))
+        single_keywords = clean_before_output(filter_core_keywords(single_keywords))
         composite_keywords = filter_core_keywords(composite_keywords)
     else:
         # Filter out the "nonstandalone" keywords
@@ -206,5 +234,5 @@ def get_keywords_from_text(text_lines, taxonomy_name, output_mode="text",
         output_mode=output_mode,
         output_limit=output_limit,
         spires=spires,
-        only_core_tags=only_core_tags
+        only_core_tags=only_core_tags,
     )
