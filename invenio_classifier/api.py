@@ -70,11 +70,12 @@ def output_keywords_for_sources(
         if output_mode == "text":
             print("Input file: %s" % source)
 
+        line_nb = len(text_lines)
         word_nb = 0
         for line in text_lines:
             word_nb += len(re.findall(r"\S+", line))
 
-        logger.info("Remote file has %d lines and %d words.".format())
+        logger.info("Remote file has %d lines and %d words." % (line_nb, word_nb))
         return get_keywords_from_text(
             text_lines,
             taxonomy_name,
