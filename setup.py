@@ -29,12 +29,9 @@ import os
 from setuptools import find_packages, setup
 
 readme = open("README.rst").read()
-history = open("CHANGES.rst").read()
 
 tests_require = [
-    "check-manifest>=0.25",
     "coverage>=4.0",
-    "isort>=4.2.2",
     "pytest-cache>=1.0",
     "pytest-cov>=1.8.0",
     "pytest-pep8>=1.0.6",
@@ -43,9 +40,6 @@ tests_require = [
 ]
 
 extras_require = {
-    "docs": [
-        "Sphinx>=1.4.2",
-    ],
     "tests": tests_require,
 }
 
@@ -72,7 +66,7 @@ setup(
     name="invenio-classifier",
     version=version,
     description=__doc__,
-    long_description=readme + "\n\n" + history,
+    long_description=readme,
     keywords="invenio keyword classification pdf",
     license="GPLv2",
     author="CERN",
@@ -82,11 +76,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     platforms="any",
-    entry_points={
-        "invenio_base.apps": [
-            "invenio_classifier = invenio_classifier:InvenioClassifier",
-        ],
-    },
+    entry_points={},
     extras_require=extras_require,
     install_requires=install_requires,
     setup_requires=setup_requires,
@@ -101,6 +91,10 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Development Status :: 5 - Production/Stable",

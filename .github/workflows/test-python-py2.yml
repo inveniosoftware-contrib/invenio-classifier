@@ -20,7 +20,7 @@ jobs:
           wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
           python2 get-pip.py
           python2 -m pip install --user --upgrade pip
-          python2 -m pip --no-cache-dir install --user -e .[tests,docs]
+          python2 -m pip --no-cache-dir install --user -e .[tests]
 
       - name: Show python dependencies
         run: |
