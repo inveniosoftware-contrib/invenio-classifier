@@ -10,6 +10,6 @@ RUN dnf update -y && dnf install -y  poppler-utils python2 wget
 RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
 RUN python2 get-pip.py
 RUN python2 -m pip install --user --upgrade pip
-RUN python2 -m pip --no-cache-dir install --user -e .[tests,docs]
+RUN python2 -m pip --no-cache-dir install --user -e .[tests]
 
 CMD ["/bin/bash"]
