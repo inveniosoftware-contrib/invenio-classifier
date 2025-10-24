@@ -51,7 +51,7 @@ setup_requires = [
     "pytest-runner>=2.6.2",
 ]
 
-install_requires = ["rdflib>=4.2.1", "six>=1.10.0", "requests>=2.9.1"]
+install_requires = ["rdflib==4.2.2", "six>=1.10.0", "requests>=2.9.1"]
 
 packages = find_packages()
 
