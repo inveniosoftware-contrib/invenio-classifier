@@ -440,7 +440,7 @@ class KeywordToken(object):
 
         def _get_ckw_components(new_vals, label):
             if isinstance(label, KeywordToken):
-                label = label.short_id
+                return
 
             if label in single_keywords:
                 new_vals.append(single_keywords[label])
