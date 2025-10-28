@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2016, 2018 CERN.
@@ -24,8 +23,6 @@
 
 
 """Pytest configuration."""
-
-from __future__ import absolute_import, print_function
 
 import os
 

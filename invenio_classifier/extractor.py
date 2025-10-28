@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
@@ -23,23 +22,17 @@ This module also provides the utility 'is_pdf' that uses GNU file in order to
 determine if a local file is a PDF file.
 """
 
-from __future__ import unicode_literals
-
-import codecs
+import logging
 import os
 import re
 import subprocess
 
-import six
-
-
-from .errors import IncompatiblePDF2Text
-from .config import CLASSIFIER_PATH_GFILE, CLASSIFIER_PATH_PDFTOTEXT
-import logging
+from invenio_classifier.config import CLASSIFIER_PATH_GFILE, CLASSIFIER_PATH_PDFTOTEXT
+from invenio_classifier.errors import IncompatiblePDF2Text
 
 logger = logging.getLogger(__name__)
 
-_ONE_WORD = re.compile("[A-Za-z]{2,}", re.U)
+_ONE_WORD = re.compile("[A-Za-z]{2,}", re.UNICODE)
 
 
 def is_pdf(document):
@@ -51,19 +44,16 @@ def is_pdf(document):
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
             )
-            (stdoutdata, stderrdata) = out.communicate()
+            (stdoutdata, _stderrdata) = out.communicate()
             if stdoutdata:
                 return True
-        except IOError as ex1:
-            logger.error("Unable to read from file %s. (%s)" % (document, ex1.strerror))
+        except OSError as ex1:
+            logger.error("Unable to read from file %s. (%s)", document, ex1.strerror)
     else:
         logger.warning(
-            "GNU file was not found on the system. "
-            "Switching to a weak file extension test."
+            "GNU file was not found on the system. Switching to a weak file extension test."
         )
-        if document.lower().endswith(".pdf"):
-            return True
-        return False
+        return document.lower().endswith(".pdf")
 
     # Tested with file version >= 4.10. First test is secure and works
     # with file version 4.25. Second condition is tested for file
@@ -99,16 +89,14 @@ def text_lines_from_local_file(document, remote=False):
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
             )
-            (stdoutdata, stderrdata) = out.communicate()
-            lines = six.ensure_text(stdoutdata, errors="replace")
-            lines = lines.splitlines()
+            (stdoutdata, _stderrdata) = out.communicate()
+            lines = stdoutdata.splitlines()
         else:
-            filestream = codecs.open(document, "r", encoding="utf8", errors="replace")
-            # FIXME - we assume it is utf-8 encoded / that is not good
-            lines = [line for line in filestream]
-            filestream.close()
-    except IOError as ex1:
-        logger.error("Unable to read from file %s. (%s)" % (document, ex1.strerror))
+            with open(document, encoding="utf8", errors="replace", newline="") as filestream:
+                # FIXME - we assume it is utf-8 encoded / that is not good
+                lines = filestream.read().splitlines(True)
+    except OSError as ex1:
+        logger.error("Unable to read from file %s. (%s)", document, ex1.strerror)
         return []
 
     # Discard lines that do not contain at least one word.
@@ -143,18 +131,11 @@ def get_plaintext_document_body(fpath, keep_layout=False):
         pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
         res_gfile = pipe_pdftotext.stdout.read()
 
-        if (res_gfile.lower().find("text") != -1) and (
-            res_gfile.lower().find("pdf") == -1
-        ):
+        if (res_gfile.lower().find("text") != -1) and (res_gfile.lower().find("pdf") == -1):
             # plain-text file: don't convert - just read in:
-            f = open(fpath, "r")
-            try:
-                textbody = [line.decode("utf-8") for line in f.readlines()]
-            finally:
-                f.close()
-        elif (res_gfile.lower().find("pdf") != -1) or (
-            res_gfile.lower().find("pdfa") != -1
-        ):
+            with open(fpath) as f:
+                textbody = [line.decode("utf-8") for line in f]
+        elif (res_gfile.lower().find("pdf") != -1) or (res_gfile.lower().find("pdfa") != -1):
             # convert from PDF
             (textbody, status) = convert_PDF_to_plaintext(fpath, keep_layout)
         else:
@@ -176,10 +157,7 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
     :return: (list) of unicode strings (contents of the PDF file translated
     into plaintext; each string is a line in the document.)
     """
-    if keep_layout:
-        layout_option = "-layout"
-    else:
-        layout_option = "-raw"
+    layout_option = "-layout" if keep_layout else "-raw"
     status = 0
     doclines = []
     # Pattern to check for lines with a leading page-break character.
@@ -197,7 +175,7 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
         fpath,
         "-",
     ]
-    logger.debug("* %s" % " ".join(cmd_pdftotext))
+    logger.debug("* %s", " ".join(cmd_pdftotext))
     # open pipe to pdftotext:
     pipe_pdftotext = subprocess.Popen(cmd_pdftotext, stdout=subprocess.PIPE)
 
@@ -216,7 +194,7 @@ def convert_PDF_to_plaintext(fpath, keep_layout=False):
             doclines.append("\f")
             doclines.append(m_break_in_line.group(1))
 
-    logger.debug("* convert_PDF_to_plaintext found: %s lines of text" % len(doclines))
+    logger.debug("* convert_PDF_to_plaintext found: %d lines of text", len(doclines))
 
     # finally, check conversion result not bad:
     if pdftotext_conversion_is_bad(doclines):
@@ -243,14 +221,11 @@ def pdftotext_conversion_is_bad(txtlines):
     # Numbers of 'words' and 'whitespaces' found in document:
     numWords = numSpaces = 0
     # whitespace character pattern:
-    p_space = re.compile(six.text_type(r"(\s)"), re.UNICODE)
+    p_space = re.compile(r"(\s)", re.UNICODE)
     # non-whitespace 'word' pattern:
-    p_noSpace = re.compile(six.text_type(r"(\S+)"), re.UNICODE)
+    p_noSpace = re.compile(r"(\S+)", re.UNICODE)
     for txtline in txtlines:
         numWords = numWords + len(p_noSpace.findall(txtline.strip()))
         numSpaces = numSpaces + len(p_space.findall(txtline.strip()))
-    if numSpaces >= (numWords * 3):
-        # Too many spaces - probably bad conversion
-        return True
-    else:
-        return False
+    # Too many spaces - probably bad conversion
+    return numSpaces >= (numWords * 3)

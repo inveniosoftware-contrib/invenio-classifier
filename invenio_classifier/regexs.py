@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2014, 2015 2016 CERN.
@@ -19,14 +18,8 @@
 
 """Contains regexes for reference extraction."""
 
-from __future__ import unicode_literals
-
-import sys
 import re
-from datetime import datetime
-
-import six
-from six import iteritems
+from datetime import UTC, datetime
 
 # Sep
 re_sep = r"\s*[,\s:-]\s*"
@@ -38,20 +31,10 @@ re_sep_opt = r"\s*[,\s:-]?\s*"
 # e.g. 2006
 re_pos_year_num = r"(?:19|20)\d{2}"
 re_pos_year = (
-    r"(?P<year>("
-    + r"\s"
-    + re_pos_year_num
-    + r"\s"
-    + r"|"
-    + r"\("
-    + re_pos_year_num
-    + r"\)"
-    + r"))"
+    r"(?P<year>(" + r"\s" + re_pos_year_num + r"\s" + r"|" + r"\(" + re_pos_year_num + r"\)" + r"))"
 )
 # e.g. LAT2007
-re_pos_volume = (
-    r"(?P<volume_name>\w{1,10})" + re_sep_opt + r"(?P<volume_num>(?:19|20)\d{2})"
-)
+re_pos_volume = r"(?P<volume_name>\w{1,10})" + re_sep_opt + r"(?P<volume_num>(?:19|20)\d{2})"
 # e.g. (LAT2007)
 re_pos_volume_par = r"\(" + re_pos_volume + r"\)"
 # e.g. 20
@@ -59,27 +42,9 @@ re_pos_page = r"(?P<page>\d{1,4})"
 re_pos_title = r"POS"
 
 re_pos_patterns = [
-    re_pos_title
-    + re_sep_opt
-    + re_pos_year
-    + re_sep
-    + re_pos_volume
-    + re_sep
-    + re_pos_page,
-    re_pos_title
-    + re_sep
-    + re_pos_volume
-    + re_sep_opt
-    + re_pos_year
-    + re_sep_opt
-    + re_pos_page,
-    re_pos_title
-    + re_sep
-    + re_pos_volume
-    + re_sep
-    + re_pos_page
-    + re_sep_opt
-    + re_pos_year,
+    re_pos_title + re_sep_opt + re_pos_year + re_sep + re_pos_volume + re_sep + re_pos_page,
+    re_pos_title + re_sep + re_pos_volume + re_sep_opt + re_pos_year + re_sep_opt + re_pos_page,
+    re_pos_title + re_sep + re_pos_volume + re_sep + re_pos_page + re_sep_opt + re_pos_year,
     re_pos_title + re_sep_opt + re_pos_volume_par + re_sep_opt + re_pos_page,
 ]
 re_opts = re.VERBOSE | re.UNICODE | re.IGNORECASE
@@ -121,16 +86,14 @@ RE_ARXIV_CATCHUP = re.compile(
 )
 
 # Patterns for ATLAS CONF report numbers
-RE_ATLAS_CONF_PRE_2010 = re.compile(
-    r"(?<!\w:)ATL(AS)?-CONF-(?P<code>(?:200\d|99)-\d{3})(?![\w\d])"
-)
-RE_ATLAS_CONF_POST_2010 = re.compile(
-    r"(?<!\w:)ATL(AS)?-CONF-(?P<code>20[1-9]\d-\d{3})(?![\w\d])"
-)
+RE_ATLAS_CONF_PRE_2010 = re.compile(r"(?<!\w:)ATL(AS)?-CONF-(?P<code>(?:200\d|99)-\d{3})(?![\w\d])")
+RE_ATLAS_CONF_POST_2010 = re.compile(r"(?<!\w:)ATL(AS)?-CONF-(?P<code>20[1-9]\d-\d{3})(?![\w\d])")
 
 
 # Pattern for old arxiv numbers
-old_arxiv_numbers = r"[\|/:\s-]?(?P<num>(?:9[1-9]|0[0-7])(?:0[1-9]|1[0-2])\d{3})(?:v\d{1,3})?(?=[^\w\d]|$)"  # noqa
+old_arxiv_numbers = (
+    r"[\|/:\s-]?(?P<num>(?:9[1-9]|0[0-7])(?:0[1-9]|1[0-2])\d{3})(?:v\d{1,3})?(?=[^\w\d]|$)"
+)
 
 old_arxiv = {
     r"acc-ph": None,
@@ -252,22 +215,18 @@ def compute_arxiv_re(report_pattern, report_number):
     if report_number is None:
         report_number = r"\g<name>"
     report_re = re.compile(
-        r"(?<!<cds\.REPORTNUMBER>)(?<!\w)"
-        + "(?P<name>"
-        + report_pattern
-        + ")"
-        + old_arxiv_numbers,
-        re.U | re.I,
+        r"(?<!<cds\.REPORTNUMBER>)(?<!\w)" + "(?P<name>" + report_pattern + ")" + old_arxiv_numbers,
+        re.UNICODE | re.IGNORECASE,
     )
     return report_re, report_number
 
 
-RE_OLD_ARXIV = [compute_arxiv_re(*i) for i in iteritems(old_arxiv)]
+RE_OLD_ARXIV = [compute_arxiv_re(*i) for i in old_arxiv.items()]
 
 
 def compute_years(start_year=1991):
     """Compute years."""
-    current_year = datetime.now().year
+    current_year = datetime.now(UTC).year
     return "|".join(str(y)[2:] for y in range(start_year, current_year + 1))
 
 
@@ -283,24 +242,22 @@ def compute_months():
 arxiv_months = compute_months()
 
 re_new_arxiv = re.compile(
-    r""" # 9910.1234v9 [physics.ins-det]
+    rf""" # 9910.1234v9 [physics.ins-det]
     (?<!ARXIV:)(?<!\d)
-    (?P<year>%(arxiv_years)s)
+    (?P<year>{arxiv_years})
     (?P<month>(0[1-9]|1[0-2]))
-    \.(?P<num>\d{4})(?:[\s-]*V(?P<version>\d))?(?!\d)
-    \s*(?P<suffix>\[[A-Z.-]+\])? """
-    % {"arxiv_years": arxiv_years},
+    \.(?P<num>\d{{4}})(?:[\s-]*V(?P<version>\d))?(?!\d)
+    \s*(?P<suffix>\[[A-Z.-]+\])? """,
     re.VERBOSE | re.UNICODE | re.IGNORECASE,
 )
 
 re_new_arxiv_5digits = re.compile(
-    r""" # 9910.1234v9 [physics.ins-det]
+    rf""" # 9910.1234v9 [physics.ins-det]
     (?<!ARXIV:)(?<!\d)
-    (?P<year>%(arxiv_years)s)
+    (?P<year>{arxiv_years_5digits})
     (?P<month>(0[1-9]|1[0-2]))
-    \.(?P<num>\d{5})(?:[\s-]*V(?P<version>\d))?(?!\d)
-    \s*(?P<suffix>\[[A-Z.-]+\])? """
-    % {"arxiv_years": arxiv_years_5digits},
+    \.(?P<num>\d{{5}})(?:[\s-]*V(?P<version>\d))?(?!\d)
+    \s*(?P<suffix>\[[A-Z.-]+\])? """,
     re.VERBOSE | re.UNICODE | re.IGNORECASE,
 )
 
@@ -317,9 +274,7 @@ re_isbn = re.compile(
 )
 
 # Pattern to recognise a correct knowledge base line:
-re_kb_line = re.compile(
-    r"^\s*(?P<seek>[^\s].*)\s*---\s*(?P<repl>[^\s].*)\s*$", re.UNICODE
-)
+re_kb_line = re.compile(r"^\s*(?P<seek>[^\s].*)\s*---\s*(?P<repl>[^\s].*)\s*$", re.UNICODE)
 
 # precompile some often-used regexp for speed reasons:
 re_regexp_character_class = re.compile(r"\[[^\]]+\]", re.UNICODE)
@@ -358,7 +313,8 @@ raw_url_pattern = r"""
 """
 # Stand-alone URL (e.g. http://inveniosoftware.org/ )
 re_raw_url = re.compile(
-    "['\"]?(?P<url>" + raw_url_pattern + ")['\"]?", re.UNICODE | re.I | re.VERBOSE
+    "['\"]?(?P<url>" + raw_url_pattern + ")['\"]?",
+    re.UNICODE | re.IGNORECASE | re.VERBOSE,
 )
 
 # HTML marked-up URL (e.g. <a href="http://inveniosoftware.org/">
@@ -379,7 +335,7 @@ re_html_tagged_url = re.compile(
     (?P<desc>[^\<]+)
     # Closing a tag
     </a>""",
-    re.UNICODE | re.I | re.VERBOSE,
+    re.UNICODE | re.IGNORECASE | re.VERBOSE,
 )
 
 
@@ -424,12 +380,12 @@ re_numeration_no_ibid_txt = re.compile(
 re_title_followed_by_series_markup_tags = re.compile(
     r"(\<cds.JOURNAL(?P<ibid>ibid)?\>([^\<]+)\<\/cds.JOURNAL(?:ibid)?\>\s*.?\s*\<cds\.SER\>([A-H]|(I{1,3}V?|VI{0,3}))\<\/cds\.SER\>)",
     re.UNICODE,
-)  # noqa
+)
 
 re_title_followed_by_implied_series = re.compile(
     r"(\<cds.JOURNAL(?P<ibid>ibid)?\>([^\<]+)\<\/cds.JOURNAL(?:ibid)?\>\s*.?\s*([A-H]|(I{1,3}V?|VI{0,3}))\s+:)",
     re.UNICODE,
-)  # noqa
+)
 
 
 re_punctuation = re.compile(r"[\.\,\;\'\(\)\-]", re.UNICODE)
@@ -461,16 +417,12 @@ re_tagged_citation = re.compile(
 
 # is there pre-recognised numeration-tagging within a
 # few characters of the start if this part of the line?
-re_tagged_numeration_near_line_start = re.compile(
-    r"^.{0,4}?<CDS (VOL|SER)>", re.UNICODE
-)
+re_tagged_numeration_near_line_start = re.compile(r"^.{0,4}?<CDS (VOL|SER)>", re.UNICODE)
 
 re_ibid = re.compile(r"(-|\b)?IBID(EM)?\.?", re.UNICODE)
 
 re_series_from_numeration = re.compile(r"^([A-Z])\s*[,\s:-]?\s*\d+", re.UNICODE)
-re_series_from_numeration_after_volume = re.compile(
-    r"^\d+\s*[,\s:-]?\s*([A-Z])", re.UNICODE
-)
+re_series_from_numeration_after_volume = re.compile(r"^\d+\s*[,\s:-]?\s*([A-Z])", re.UNICODE)
 
 # Obtain the series character from the standardised title text
 # Only used when no series letter is obtained from numeration matching
@@ -501,27 +453,21 @@ re_title_tag = r"(?P<title_tag><cds\.JOURNAL>[^<]*<\/cds\.JOURNAL>)"
 
 # Number (within a volume)
 re_volume_sub_number = r"[Nn][oO°]\.?\s*\d{1,6}"
-re_volume_sub_number_opt = (
-    "(?:" + re_sep + "(?P<vol_sub>" + re_volume_sub_number + "))?"
-)
+re_volume_sub_number_opt = "(?:" + re_sep + "(?P<vol_sub>" + re_volume_sub_number + "))?"
 
 # Volume
 re_volume_prefix = r"(?:[Vv]o?l?\.?|[Nn][oO°]\.?)"  # Optional Vol./No.
 re_volume_suffix = r"(?:\s*\(\d{1,2}(?:-\d)?\))?"
 re_volume_num = r"\d+|" + r"(?:(?<!\w)" + re_roman_numbers + r"(?!\w))"
 re_volume_id = (
-    r"(?P<vol>(?:(?:[A-Za-z]\s*[,\s:-]?\s*)?(?P<vol_num>%(volume_num)s))|(?:(?P<vol_num_alt>%(volume_num)s)(?:[A-Za-z]))|(?:(?:[A-Za-z]\s?)?(?P<vol_num_alt2>\d+)\s*\-\s*(?:[A-Za-z]\s?)?\d+))"
-    % {"volume_num": re_volume_num}
-)  # noqa
+    r"(?P<vol>(?:(?:[A-Za-z]\s*[,\s:-]?\s*)?(?P<vol_num>"
+    rf"{re_volume_num}))|(?:(?P<vol_num_alt>{re_volume_num})"
+    r"(?:[A-Za-z]))|(?:(?:[A-Za-z]\s?)?(?P<vol_num_alt2>\d+)\s*"
+    r"\-\s*(?:[A-Za-z]\s?)?\d+))"
+)
 re_volume_check = r"(?<![\/\d])"
 re_volume = (
-    r"\b"
-    + "(?:"
-    + re_volume_prefix
-    + r")?\s*"
-    + re_volume_check
-    + re_volume_id
-    + re_volume_suffix
+    r"\b" + "(?:" + re_volume_prefix + r")?\s*" + re_volume_check + re_volume_id + re_volume_suffix
 )
 
 # Month
@@ -538,19 +484,15 @@ re_month = r"""(?:(?:
 # Year
 re_year_num = r"(?:19|20)\d{2}"
 re_year_text = "(?P<year>[A-Za-z]?" + re_year_num + ")(?:[A-Za-z]?)"
-re_year = r"""
+re_year = rf"""
     \(?
-    (?:%(short_month)s[,\s]\s*)?  # Jul, 1980
-    (?:%(month)s[,\s]\s*)?        # July, 1980
+    (?:{re_short_month}[,\s]\s*)?  # Jul, 1980
+    (?:{re_month}[,\s]\s*)?        # July, 1980
     (?<!\d)
-    %(year)s
+    {re_year_text}
     (?!\d)
     \)?
-""" % {
-    "year": re_year_text,
-    "short_month": re_short_month,
-    "month": re_month,
-}
+"""
 
 # Page
 re_page_prefix = r"[pP]?[p]?\.?\s?"  # Starting page num: optional Pp.
@@ -643,7 +585,7 @@ re_correct_numeration_2nd_try_ptn4 = re.compile(
 # <serie : volume> E.g. Replace the string """Series A, Vol 4""" with """A 4"""
 re_strip_series_and_volume_labels = (
     re.compile(
-        r"(Serie\s|\bS\.?\s)?([A-H])\s?[:,]\s?(\b[Vv]o?l?\.?|\b[Nn]o\.?)?\s?(\d+)",  # noqa
+        r"(Serie\s|\bS\.?\s)?([A-H])\s?[:,]\s?(\b[Vv]o?l?\.?|\b[Nn]o\.?)?\s?(\d+)",
         re.UNICODE,
     ),
     r"\g<2> \g<4>",
@@ -703,12 +645,7 @@ re_numeration_nucphys_vol_page_yr = re.compile(
 
 # <v, y, p>
 re_numeration_vol_yr_page = re.compile(
-    re_start
-    + re_volume
-    + re_sep_or_parentesis
-    + re_year
-    + re_sep_or_after_parentesis
-    + re_page,
+    re_start + re_volume + re_sep_or_parentesis + re_year + re_sep_or_after_parentesis + re_page,
     re.UNICODE | re.VERBOSE,
 )
 
@@ -871,13 +808,13 @@ def get_reference_section_title_patterns():
         "citations",
         "literaturverzeichnis",
     ]
-    sect_marker = six.text_type(
+    sect_marker = (
         r"^\s*([\[\-\{\(])?\s*"
         r"((\w|\d){1,5}([\.\-\,](\w|\d){1,5})?\s*"
         r"[\.\-\}\)\]]\s*)?"
-        r"(?P<title>",
+        r"(?P<title>"
     )
-    sect_marker1 = six.text_type(r"^(\d){1,3}\s*(?P<title>")
+    sect_marker1 = r"^(\d){1,3}\s*(?P<title>"
     line_end = (
         r"(\s*s\s*e\s*c\s*t\s*i\s*o\s*n\s*)?)([\)\}\]])?"
         r"($|\s*[\[\{\(\<]\s*[1a-z]\s*[\}\)\>\]]|\:$)"
@@ -888,7 +825,7 @@ def get_reference_section_title_patterns():
             sect_marker
             + _create_regex_pattern_add_optional_spaces_to_word_characters(t)
             + line_end,
-            re.I | re.UNICODE,
+            re.IGNORECASE | re.UNICODE,
         )
         patterns.append(t_ptn)
         # allow e.g.  'N References' to be found where N is an integer
@@ -896,7 +833,7 @@ def get_reference_section_title_patterns():
             sect_marker1
             + _create_regex_pattern_add_optional_spaces_to_word_characters(t)
             + line_end,
-            re.I | re.UNICODE,
+            re.IGNORECASE | re.UNICODE,
         )
         patterns.append(t_ptn)
 
@@ -912,9 +849,7 @@ def get_reference_line_numeration_marker_patterns(prefix=""):
     :return: (list) of compiled regex patterns.
     """
     title = ""
-    if (sys.version_info[0] >= 3 and type(prefix) is str) or (
-        sys.version_info[0] < 3 and type(prefix) in (str, unicode)  # noqa F821
-    ):
+    if isinstance(prefix, str):
         title = prefix
     g_name = "(?P<mark>"
     g_close = ")"
@@ -923,11 +858,7 @@ def get_reference_line_numeration_marker_patterns(prefix=""):
         # [1]
         space + title + g_name + r"\[\s*(?P<marknum>\d+)\s*\]" + g_close,
         # [<letters and numbers]
-        space
-        + title
-        + g_name
-        + r"\[\s*[a-zA-Z:-]+\+?\s?(\d{1,4}[A-Za-z:-]?)?\s*\]"
-        + g_close,  # noqa
+        space + title + g_name + r"\[\s*[a-zA-Z:-]+\+?\s?(\d{1,4}[A-Za-z:-]?)?\s*\]" + g_close,
         # {1}
         space + title + g_name + r"\{\s*(?P<marknum>\d+)\s*\}" + g_close,
         # (1)
@@ -949,7 +880,7 @@ def get_reference_line_numeration_marker_patterns(prefix=""):
         # *
         space + title + g_name + r"\*" + g_close,
     ]
-    return [re.compile(p, re.I | re.UNICODE) for p in patterns]
+    return [re.compile(p, re.IGNORECASE | re.UNICODE) for p in patterns]
 
 
 def get_reference_line_marker_pattern(pattern):
@@ -961,7 +892,7 @@ def get_reference_line_marker_pattern(pattern):
 
     :return: (list) of compiled regex patterns.
     """
-    return re.compile("(?P<mark>" + pattern + ")", re.I | re.UNICODE)
+    return re.compile("(?P<mark>" + pattern + ")", re.IGNORECASE | re.UNICODE)
 
 
 re_reference_line_bracket_markers = get_reference_line_marker_pattern(
@@ -993,16 +924,10 @@ def get_post_reference_section_title_patterns():
     roman_numbers = r"[LVIX]"
     patterns = [
         # Section titles
+        thead + _create_regex_pattern_add_optional_spaces_to_word_characters("appendix") + ttail,
+        thead + _create_regex_pattern_add_optional_spaces_to_word_characters("appendices") + ttail,
         thead
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("appendix")
-        + ttail,
-        thead
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("appendices")
-        + ttail,
-        thead
-        + _create_regex_pattern_add_optional_spaces_to_word_characters(
-            "acknowledgement"
-        )
+        + _create_regex_pattern_add_optional_spaces_to_word_characters("acknowledgement")
         + r"s?"
         + ttail,
         thead
@@ -1042,9 +967,7 @@ def get_post_reference_section_title_patterns():
         + r"s?"
         + ttail,
         # Figure nums
-        r"^\s*"
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("figure")
-        + numatn,
+        r"^\s*" + _create_regex_pattern_add_optional_spaces_to_word_characters("figure") + numatn,
         r"^\s*"
         + _create_regex_pattern_add_optional_spaces_to_word_characters("fig")
         + r"\.\s*"
@@ -1053,9 +976,7 @@ def get_post_reference_section_title_patterns():
         + _create_regex_pattern_add_optional_spaces_to_word_characters("fig")
         + r"\.?\s*\d\w?\b",
         # Tables
-        r"^\s*"
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("table")
-        + numatn,
+        r"^\s*" + _create_regex_pattern_add_optional_spaces_to_word_characters("table") + numatn,
         r"^\s*"
         + _create_regex_pattern_add_optional_spaces_to_word_characters("tab")
         + r"\.\s*"
@@ -1069,7 +990,7 @@ def get_post_reference_section_title_patterns():
     ]
 
     for p in patterns:
-        compiled_patterns.append(re.compile(p, re.I | re.UNICODE))
+        compiled_patterns.append(re.compile(p, re.IGNORECASE | re.UNICODE))
 
     return compiled_patterns
 
@@ -1085,25 +1006,25 @@ def get_post_reference_section_keyword_patterns():
     compiled_patterns = []
     patterns = [
         "("
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("prepared")  # noqa
+        + _create_regex_pattern_add_optional_spaces_to_word_characters("prepared")
         + r"|"
-        + _create_regex_pattern_add_optional_spaces_to_word_characters("created")  # noqa
+        + _create_regex_pattern_add_optional_spaces_to_word_characters("created")
         + r").*(AAS\s*)?\sLATEX",
         r"AAS\s+?LATEX\s+?"
         + _create_regex_pattern_add_optional_spaces_to_word_characters("macros")
-        + "v",  # noqa
+        + "v",
         r"^\s*"
         + _create_regex_pattern_add_optional_spaces_to_word_characters(
             "This paper has been produced using"
-        ),  # noqa
+        ),
         r"^\s*"
         + _create_regex_pattern_add_optional_spaces_to_word_characters(
             "This article was processed by the author using Springer-Verlag"
-        )  # noqa
+        )
         + " LATEX",
     ]
     for p in patterns:
-        compiled_patterns.append(re.compile(p, re.I | re.UNICODE))
+        compiled_patterns.append(re.compile(p, re.IGNORECASE | re.UNICODE))
     return compiled_patterns
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2016 CERN.
@@ -28,13 +27,11 @@ You can use the command line tool ${INVENIO_WEB_INSTANCE} classifier --help
 or access the API directly.
 """
 
-from __future__ import absolute_import, print_function
-
-from .api import get_keywords_from_text, get_keywords_from_local_file
-from .version import __version__
+from invenio_classifier.api import get_keywords_from_local_file, get_keywords_from_text
+from invenio_classifier.version import __version__
 
 __all__ = (
     "__version__",
-    "get_keywords_from_text",
     "get_keywords_from_local_file",
+    "get_keywords_from_text",
 )

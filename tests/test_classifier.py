@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2010, 2011, 2013, 2014, 2015, 2016, 2018 CERN.
@@ -19,21 +18,17 @@
 
 """Test suite for classifier module."""
 
-from __future__ import absolute_import, print_function
-
 import os
 import shutil
 import stat
 import time
+from unittest.mock import patch
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
 import pytest
 
 from invenio_classifier import get_keywords_from_local_file, get_keywords_from_text
 from invenio_classifier.errors import TaxonomyError
+from invenio_classifier.extractor import text_lines_from_local_file
 
 
 def test_keywords(demo_taxonomy, demo_text):
@@ -56,9 +51,7 @@ def test_keywords(demo_taxonomy, demo_text):
 def test_taxonomy_error(demo_text):
     """Test passing non existing taxonomy."""
     with pytest.raises(TaxonomyError):
-        get_keywords_from_text(
-            text_lines=[demo_text], taxonomy_name="foo", output_mode="dict"
-        )
+        get_keywords_from_text(text_lines=[demo_text], taxonomy_name="foo", output_mode="dict")
 
 
 def test_file_extration(demo_pdf_file, demo_taxonomy):
@@ -130,9 +123,7 @@ def test_composite_keywords(hep_taxonomy, pdf_with_composite_keywords):
 
 def test_taxonomy_workdir(demo_text, demo_taxonomy):
     """Test grabbing taxonomy from the CLASSIFIER_WORKDIR."""
-    with patch(
-        "invenio_classifier.reader.CLASSIFIER_WORKDIR", os.path.dirname(demo_taxonomy)
-    ):
+    with patch("invenio_classifier.reader.CLASSIFIER_WORKDIR", os.path.dirname(demo_taxonomy)):
         out = get_keywords_from_text(
             text_lines=[demo_text], taxonomy_name="test.rdf", output_mode="dict"
         )
@@ -151,8 +142,8 @@ def test_taxonomy_workdir(demo_text, demo_taxonomy):
 def test_rebuild_cache(demo_taxonomy):
     """Test rebuilding taxonomy cache."""
     from invenio_classifier.reader import (
-        _get_ontology,
         _get_cache_path,
+        _get_ontology,
         get_regular_expressions,
     )
 
@@ -161,10 +152,7 @@ def test_rebuild_cache(demo_taxonomy):
     assert info[0]
     cache = _get_cache_path(info[0])
 
-    if os.path.exists(cache):
-        ctime = os.stat(cache)[stat.ST_CTIME]
-    else:
-        ctime = -1
+    ctime = os.stat(cache)[stat.ST_CTIME] if os.path.exists(cache) else -1
 
     time.sleep(0.5)  # sleep a bit for timing issues
     rex = get_regular_expressions(demo_taxonomy, rebuild=True)
@@ -181,22 +169,22 @@ def test_rebuild_cache(demo_taxonomy):
 def test_cache_accessibility(demo_taxonomy):
     """Test taxonomy cache accessibility/writability."""
     from invenio_classifier.reader import (
+        _get_cache_path,
         _get_ontology,
         get_regular_expressions,
-        _get_cache_path,
     )
 
     assert os.path.exists(demo_taxonomy)
 
     # we will do tests with a copy of test taxonomy, in case anything goes
     # wrong...
-    orig_name, orig_taxonomy_path, orig_taxonomy_url = _get_ontology(demo_taxonomy)
+    _orig_name, orig_taxonomy_path, _orig_taxonomy_url = _get_ontology(demo_taxonomy)
 
     demo_taxonomy = demo_taxonomy + ".copy.rdf"
 
     shutil.copy(orig_taxonomy_path, demo_taxonomy)
 
-    dummy_name, demo_taxonomy, dummy_url = _get_ontology(demo_taxonomy)
+    _dummy_name, demo_taxonomy, _dummy_url = _get_ontology(demo_taxonomy)
     cache = _get_cache_path(demo_taxonomy)
 
     if os.path.exists(cache):
@@ -271,7 +259,16 @@ def test_cache_accessibility(demo_taxonomy):
     finally:
         os.rename(demo_taxonomy + "x", demo_taxonomy)
 
-    name, demo_taxonomy, taxonomy_url = _get_ontology(demo_taxonomy)
+    name, demo_taxonomy, _taxonomy_url = _get_ontology(demo_taxonomy)
     cache = _get_cache_path(name)
     os.remove(demo_taxonomy)
     os.remove(cache)
+
+
+def test_text_lines_from_local_file_splits_on_form_feed(tmp_path):
+    doc = tmp_path / "paper.txt"
+    doc.write_text("end of page one\n\fSecond page starts here\n")
+    assert text_lines_from_local_file(str(doc)) == [
+        "end of page one\n",
+        "Second page starts here\n",
+    ]
