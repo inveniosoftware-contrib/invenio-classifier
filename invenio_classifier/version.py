@@ -27,4 +27,4 @@ This file is imported by ``invenio_classifier.__init__``,
 and parsed by ``pyproject.toml``.
 """
 
-__version__ = "1.3.13"
+__version__ = "1.3.14"
