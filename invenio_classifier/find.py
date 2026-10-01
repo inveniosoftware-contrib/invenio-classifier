@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016 CERN.
@@ -19,11 +18,10 @@
 
 """Finding the reference section from the fulltext."""
 
+import logging
 import re
 
-import logging
-
-from .regexs import (
+from invenio_classifier.regexs import (
     get_post_reference_section_keyword_patterns,
     get_post_reference_section_title_patterns,
     get_reference_line_numeration_marker_patterns,
@@ -71,9 +69,7 @@ def find_reference_section(docbody):
         if title_match:
             title = title_match.group("title")
             index = len(docbody) - 1 - reversed_index
-            temp_ref_details, found_title = find_numeration(
-                docbody[index : index + 6], title
-            )
+            temp_ref_details, found_title = find_numeration(docbody[index : index + 6], title)
             if temp_ref_details:
                 if (
                     ref_details
@@ -371,9 +367,7 @@ def find_reference_section_no_title_generic(docbody, marker_patterns):
     return ref_sectn_details
 
 
-def find_end_of_reference_section(
-    docbody, ref_start_line, ref_line_marker, ref_line_marker_ptn
-):
+def find_end_of_reference_section(docbody, ref_start_line, ref_line_marker, ref_line_marker_ptn):
     """Find end of reference section.
 
     Given that the start of a document's reference section has already been
@@ -404,7 +398,7 @@ def find_end_of_reference_section(
     kw_patterns = get_post_reference_section_keyword_patterns()
 
     if None not in (ref_line_marker, ref_line_marker_ptn):
-        mk_patterns = [re.compile(ref_line_marker_ptn, re.I | re.UNICODE)]
+        mk_patterns = [re.compile(ref_line_marker_ptn, re.IGNORECASE | re.UNICODE)]
     else:
         mk_patterns = get_reference_line_numeration_marker_patterns()
 
@@ -526,11 +520,9 @@ def get_reference_section_beginning(fulltext):
                     sect_start["how_found_start"] = 4
 
     if sect_start:
-        logger.debug("* title %r" % sect_start["title_string"])
-        logger.debug("* marker %r" % sect_start["marker"])
-        logger.debug(
-            "* title_marker_same_line %s" % sect_start["title_marker_same_line"]
-        )
+        logger.debug("* title %r", sect_start["title_string"])
+        logger.debug("* marker %r", sect_start["marker"])
+        logger.debug("* title_marker_same_line %s", sect_start["title_marker_same_line"])
     else:
         logger.debug("* could not find references section")
     return sect_start

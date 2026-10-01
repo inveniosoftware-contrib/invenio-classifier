@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2014, 2015, 2016 CERN.
@@ -19,17 +18,12 @@
 
 """Classifier API - fulltext keyword extractor."""
 
-from __future__ import print_function
-
+import logging
 import os
 import re
 
-from .config import CLASSIFIER_DEFAULT_OUTPUT_NUMBER
-
-import logging
-
-
-from .engine import (
+from invenio_classifier.config import CLASSIFIER_DEFAULT_OUTPUT_NUMBER
+from invenio_classifier.engine import (
     clean_before_output,
     extract_abbreviations,
     extract_author_keywords,
@@ -39,9 +33,9 @@ from .engine import (
     get_keywords_output,
     get_partial_text,
 )
-from .extractor import get_plaintext_document_body, text_lines_from_local_file
-from .normalizer import cut_references, normalize_fulltext
-from .reader import get_cache, get_regular_expressions, set_cache
+from invenio_classifier.extractor import get_plaintext_document_body, text_lines_from_local_file
+from invenio_classifier.normalizer import cut_references, normalize_fulltext
+from invenio_classifier.reader import get_cache, get_regular_expressions, set_cache
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +62,14 @@ def output_keywords_for_sources(
     # not process multiple files)
     def process_lines():
         if output_mode == "text":
-            print("Input file: %s" % source)
+            print(f"Input file: {source}")
 
         line_nb = len(text_lines)
         word_nb = 0
         for line in text_lines:
             word_nb += len(re.findall(r"\S+", line))
 
-        logger.info("Remote file has %d lines and %d words." % (line_nb, word_nb))
+        logger.info("Remote file has %d lines and %d words.", line_nb, word_nb)
         return get_keywords_from_text(
             text_lines,
             taxonomy_name,
@@ -92,7 +86,7 @@ def output_keywords_for_sources(
 
     # Get the fulltext for each source.
     for entry in input_sources:
-        logger.info("Trying to read input file %s." % entry)
+        logger.info("Trying to read input file %s.", entry)
         text_lines = None
         source = ""
         if os.path.isdir(entry):
@@ -101,12 +95,12 @@ def output_keywords_for_sources(
                     continue
                 filename = os.path.join(entry, filename)
                 if os.path.isfile(filename):
-                    text_lines, dummy = get_plaintext_document_body(filename)
+                    text_lines, _dummy = get_plaintext_document_body(filename)
                     if text_lines:
                         source = filename
                         process_lines()
         elif os.path.isfile(entry):
-            text_lines, dummy = get_plaintext_document_body(entry)
+            text_lines, _dummy = get_plaintext_document_body(entry)
             if text_lines:
                 source = os.path.basename(entry)
                 process_lines()
@@ -115,7 +109,7 @@ def output_keywords_for_sources(
             from invenio_utils.filedownload import download_url
 
             local_file = download_url(entry)
-            text_lines, dummy = get_plaintext_document_body(local_file)
+            text_lines, _dummy = get_plaintext_document_body(local_file)
             if text_lines:
                 source = entry.split("/")[-1]
                 process_lines()
@@ -141,7 +135,7 @@ def get_keywords_from_local_file(
     if output_limit is None:
         output_limit = CLASSIFIER_DEFAULT_OUTPUT_NUMBER
 
-    logger.info("Analyzing keywords for local file %s." % local_file)
+    logger.info("Analyzing keywords for local file %s.", local_file)
     text_lines = text_lines_from_local_file(local_file)
 
     return get_keywords_from_text(
@@ -197,9 +191,7 @@ def get_keywords_from_text(
     if not cache:
         set_cache(
             taxonomy_name,
-            get_regular_expressions(
-                taxonomy_name, rebuild=rebuild_cache, no_cache=no_cache
-            ),
+            get_regular_expressions(taxonomy_name, rebuild=rebuild_cache, no_cache=no_cache),
         )
         cache = get_cache(taxonomy_name)
     _skw = cache[0]

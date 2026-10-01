@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
@@ -18,8 +17,6 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 """Classifier acronym analyzer."""
-
-from __future__ import print_function
 
 import re
 
@@ -72,17 +69,17 @@ def get_acronyms(fulltext):
 
             pattern = ""
             for char in acronym[:-1]:
-                pattern += r"%s\w+\W*" % char
-            pattern += r"%s\w+" % acronym[-1]
+                pattern += rf"{char}\w+\W*"
+            pattern += rf"{acronym[-1]}\w+"
 
-            if re.search(pattern, match.group(1), re.I) is not None:
+            if re.search(pattern, match.group(1), re.IGNORECASE) is not None:
                 _add_expansion_to_acronym_dict(acronym, match.group(1), 0, acronyms)
             continue
 
         pattern = r"\W("
         for char in acronym[:-1]:
-            pattern += r"%s\w+\W+" % char
-        pattern += r"%s\w+)$" % acronym[-1]
+            pattern += rf"{char}\w+\W+"
+        pattern += rf"{acronym[-1]}\w+)$"
 
         # LEVEL 1: expansion with uppercase initials
         match = re.search(pattern, potential_expansion)
@@ -91,7 +88,7 @@ def get_acronyms(fulltext):
             continue
 
         # LEVEL 2: expansion with initials
-        match = re.search(pattern, potential_expansion, re.I)
+        match = re.search(pattern, potential_expansion, re.IGNORECASE)
         if match is not None:
             _add_expansion_to_acronym_dict(acronym, match.group(1), 2, acronyms)
             continue
@@ -101,13 +98,11 @@ def get_acronyms(fulltext):
             [word for word in _words(potential_expansion) if word not in STOPLIST]
         )
 
-        match = re.search(pattern, potential_expansion_stripped, re.I)
+        match = re.search(pattern, potential_expansion_stripped, re.IGNORECASE)
         if match is not None:
             first_expansion_word = re.search(r"\w+", match.group(1)).group()
             start = potential_expansion.lower().rfind(first_expansion_word)
-            _add_expansion_to_acronym_dict(
-                acronym, potential_expansion[start:], 3, acronyms
-            )
+            _add_expansion_to_acronym_dict(acronym, potential_expansion[start:], 3, acronyms)
             continue
 
         # LEVEL 4: expansion with fuzzy initials and stoplist
@@ -123,10 +118,7 @@ def get_acronyms(fulltext):
         try:
             while index0 < len(reversed_acronym) and index1 < len(reversed_words):
                 word = reversed_words[index1]
-                if index0 + 1 < len(reversed_words):
-                    next_word = reversed_words[index0 + 1]
-                else:
-                    next_word = "_"
+                next_word = reversed_words[index0 + 1] if index0 + 1 < len(reversed_words) else "_"
 
                 char = reversed_acronym[index0]
                 if index0 + 1 < len(reversed_acronym):
@@ -145,11 +137,7 @@ def get_acronyms(fulltext):
                 if word.startswith(char):
                     index0 += 1
                     index1 += 1
-                elif (
-                    char in word
-                    and not word.endswith(char)
-                    and word.startswith(next_char)
-                ):
+                elif char in word and not word.endswith(char) and word.startswith(next_char):
                     index0 += 2
                     index1 += 1
                 else:
@@ -164,9 +152,7 @@ def get_acronyms(fulltext):
         if word:
             start = potential_expansion.lower().rfind(word)
 
-            _add_expansion_to_acronym_dict(
-                acronym, potential_expansion[start:], 4, acronyms
-            )
+            _add_expansion_to_acronym_dict(acronym, potential_expansion[start:], 4, acronyms)
             continue
 
         # LEVEL 5: expansion with fuzzy initials
@@ -182,10 +168,7 @@ def get_acronyms(fulltext):
         try:
             while index0 < len(reversed_acronym) and index1 < len(reversed_words):
                 word = reversed_words[index1]
-                if index0 + 1 < len(reversed_words):
-                    next_word = reversed_words[index0 + 1]
-                else:
-                    next_word = ""
+                next_word = reversed_words[index0 + 1] if index0 + 1 < len(reversed_words) else ""
 
                 char = reversed_acronym[index0]
                 if index0 + 1 < len(reversed_acronym):
@@ -204,11 +187,7 @@ def get_acronyms(fulltext):
                 if word.startswith(char):
                     index0 += 1
                     index1 += 1
-                elif (
-                    char in word
-                    and not word.endswith(char)
-                    and word.startswith(next_char)
-                ):
+                elif char in word and not word.endswith(char) and word.startswith(next_char):
                     index0 += 2
                     index1 += 1
                 else:
@@ -222,9 +201,7 @@ def get_acronyms(fulltext):
 
         if word:
             start = potential_expansion.lower().rfind(word)
-            _add_expansion_to_acronym_dict(
-                acronym, potential_expansion[start:], 5, acronyms
-            )
+            _add_expansion_to_acronym_dict(acronym, potential_expansion[start:], 5, acronyms)
             continue
 
     return acronyms

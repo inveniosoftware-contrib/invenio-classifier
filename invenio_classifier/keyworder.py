@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2008-2016, 2018 CERN.
@@ -24,21 +23,17 @@ different methods for 3 different types of keywords: single keywords, composite
 keywords and author keywords.
 """
 
-from __future__ import print_function
-
+import logging
 import re
 
-from .config import (
-    CLASSIFIER_AUTHOR_KW_START,
+from invenio_classifier.config import (
     CLASSIFIER_AUTHOR_KW_END,
     CLASSIFIER_AUTHOR_KW_SEPARATION,
+    CLASSIFIER_AUTHOR_KW_START,
     CLASSIFIER_VALID_SEPARATORS,
 )
-import logging
-
-from .errors import OntologyError
-
-from .utils import get_clock
+from invenio_classifier.errors import OntologyError
+from invenio_classifier.utils import get_clock
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +63,7 @@ def get_single_keywords(skw_db, fulltext):
 
                 # FIXME: expensive!!!
                 # Remove the previous records contained by this span
-                records = [
-                    record for record in records if not _contains_span(span, record[0])
-                ]
+                records = [record for record in records if not _contains_span(span, record[0])]
 
                 add = True
                 for previous_record in records:
@@ -93,8 +86,9 @@ def get_single_keywords(skw_db, fulltext):
         single_keywords[single_keyword][0].append(span)
 
     logger.info(
-        "Matching single keywords... %d keywords found "
-        "in %.1f sec." % (len(single_keywords), get_clock() - timer_start),
+        "Matching single keywords... %d keywords found in %.1f sec.",
+        len(single_keywords),
+        get_clock() - timer_start,
     )
     return single_keywords
 
@@ -157,15 +151,11 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
         ckw_spans = []
         for index in range(len(spans) - 1):
             len_ckw = len(ckw_spans)
-            if ckw_spans:  # cause ckw_spans include the previous
-                previous_spans = ckw_spans
-            else:
-                previous_spans = spans[index]
+            # cause ckw_spans include the previous
+            previous_spans = ckw_spans or spans[index]
 
             for new_span in [
-                (span0, colmd1)
-                for span0 in previous_spans
-                for colmd1 in spans[index + 1]
+                (span0, colmd1) for span0 in previous_spans for colmd1 in spans[index + 1]
             ]:
                 span = _get_ckw_span(fulltext, new_span)
                 if span is not None:
@@ -181,9 +171,7 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                             _ckw_spans.append(s)
                 ckw_spans = _ckw_spans
 
-        for matched_span in [
-            mspan for mspan in ckw_spans if mspan not in matched_spans
-        ]:
+        for matched_span in [mspan for mspan in ckw_spans if mspan not in matched_spans]:
             ckw_count += 1
             matched_spans.append(matched_span)
 
@@ -254,8 +242,9 @@ def get_composite_keywords(ckw_db, fulltext, skw_spans):
                             break
 
     logger.info(
-        "Matching composite keywords... %d keywords found "
-        "in %.1f sec." % (len(ckw_out), get_clock() - timer_start),
+        "Matching composite keywords... %d keywords found in %.1f sec.",
+        len(ckw_out),
+        get_clock() - timer_start,
     )
     return ckw_out
 
@@ -284,8 +273,9 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
     author_keywords = CLASSIFIER_AUTHOR_KW_SEPARATION.split(kw_string)
 
     logger.info(
-        "Matching author keywords... %d keywords found in "
-        "%.1f sec." % (len(author_keywords), get_clock() - timer_start)
+        "Matching author keywords... %d keywords found in %.1f sec.",
+        len(author_keywords),
+        get_clock() - timer_start,
     )
 
     for kw in author_keywords:
@@ -295,11 +285,10 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
             kw = kw.replace(".", "")
 
         # Drop trailing dots such as those in the last keyword.
-        if kw.endswith("."):
-            kw = kw[:-1]
+        kw = kw.removesuffix(".")
 
         # First try with the keyword as such, then lower it.
-        kw_with_spaces = " %s " % kw
+        kw_with_spaces = f" {kw} "
         matching_skw = get_single_keywords(skw_db, kw_with_spaces)
         matching_ckw = get_composite_keywords(ckw_db, kw_with_spaces, matching_skw)
 
@@ -309,8 +298,8 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
         lowkw = kw.lower()
 
-        matching_skw = get_single_keywords(skw_db, " %s " % lowkw)
-        matching_ckw = get_composite_keywords(ckw_db, " %s " % lowkw, matching_skw)
+        matching_skw = get_single_keywords(skw_db, f" {lowkw} ")
+        matching_ckw = get_composite_keywords(ckw_db, f" {lowkw} ", matching_skw)
 
         out[kw] = (matching_skw, matching_ckw)
 
@@ -319,9 +308,7 @@ def get_author_keywords(skw_db, ckw_db, fulltext):
 
 def _get_ckw_span(fulltext, spans):
     """Return the span of the composite keyword if it is valid."""
-    _MAXIMUM_SEPARATOR_LENGTH = max(
-        [len(_separator) for _separator in CLASSIFIER_VALID_SEPARATORS]
-    )
+    _MAXIMUM_SEPARATOR_LENGTH = max([len(_separator) for _separator in CLASSIFIER_VALID_SEPARATORS])
     if spans[0] < spans[1]:
         words = (spans[0], spans[1])
         dist = spans[1][0] - spans[0][1]
@@ -347,9 +334,7 @@ def _get_ckw_span(fulltext, spans):
 
 def _contains_span(span0, span1):
     """Return true if span0 contains span1, False otherwise."""
-    if span0 == span1 or span0[0] > span1[0] or span0[1] < span1[1]:
-        return False
-    return True
+    return not (span0 == span1 or span0[0] > span1[0] or span0[1] < span1[1])
 
 
 def _span_overlapping(aspan, bspan):

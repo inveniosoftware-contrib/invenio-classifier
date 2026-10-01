@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2007, 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
@@ -19,17 +18,9 @@
 
 """Classifier can be configured in different ways."""
 
-from __future__ import unicode_literals
-
-import re
 import os
-
-try:
-    from shutil import which
-except ImportError:
-    # CPython <3.3
-    from distutils.spawn import find_executable as which
-
+import re
+from shutil import which
 
 CLASSIFIER_WORKDIR = None
 """Path to directory for classifier related files, default: instance_path."""

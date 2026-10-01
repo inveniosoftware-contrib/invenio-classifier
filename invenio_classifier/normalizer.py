@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
 # Copyright (C) 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016 CERN.
@@ -27,15 +26,10 @@ This modules uses the refextract module of BibEdit in order to find the
 references section and to replace Unicode characters.
 """
 
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+import logging
 import re
 
-from six import iteritems
-from .find import find_end_of_reference_section, find_reference_section
-
-import logging
+from invenio_classifier.find import find_end_of_reference_section, find_reference_section
 
 logger = logging.getLogger(__name__)
 _washing_regex = []
@@ -61,7 +55,7 @@ def get_washing_regex():
     # Remove spaces in particle names.
     # Particles with -/+/*
     washing_regex += [
-        (re.compile(r"(\W%s) ([-+*])" % name), r"\1\2")
+        (re.compile(rf"(\W{name}) ([-+*])"), r"\1\2")
         for name in (
             "c",
             "muon",
@@ -82,7 +76,7 @@ def get_washing_regex():
 
     # Particles followed by numbers
     washing_regex += [
-        (re.compile(r"(\W%s) ([0-9]\W)" % name), r"\1\2")
+        (re.compile(rf"(\W{name}) ([0-9]\W)"), r"\1\2")
         for name in (
             "a",
             "b",
@@ -106,18 +100,16 @@ def get_washing_regex():
         )
     ]
     washing_regex += [
-        (re.compile(r"(\W%s) ?\( ?([0-9]+) ?\)[A-Z]?" % name), r"\1(\2)")
+        (re.compile(rf"(\W{name}) ?\( ?([0-9]+) ?\)[A-Z]?"), r"\1(\2)")
         for name in ("CP", "E", "G", "O", "S", "SL", "SO", "Spin", "SU", "U", "W", "Z")
     ]
 
     # Particles with '
-    washing_regex += [
-        (re.compile(r"(\W%s) ('\W)" % name), r"\1\2") for name in ("Eta", "W", "Z")
-    ]
+    washing_regex += [(re.compile(rf"(\W{name}) ('\W)"), r"\1\2") for name in ("Eta", "W", "Z")]
 
     # Particles with (N)
     washing_regex += [
-        (re.compile(r"(\W%s) ?\( ?N ?\)[A-Z]?" % name), r"\1(N)")
+        (re.compile(rf"(\W{name}) ?\( ?N ?\)[A-Z]?"), r"\1(N)")
         for name in ("CP", "GL", "O", "SL", "SO", "Sp", "Spin", "SU", "U", "W", "Z")
     ]
 
@@ -126,7 +118,7 @@ def get_washing_regex():
 
     # Some weird names followed by ([0-9]{3,4})
     washing_regex += [
-        (re.compile(r"\(%s\) (\([0-9]{3,4}\))" % name), r"\1\2 ")
+        (re.compile(rf"\({name}\) (\([0-9]{{3,4}}\))"), r"\1\2 ")
         for name in ("a0", "Ds1", "Ds2", r"K\*")
     ]
 
@@ -676,7 +668,7 @@ def replace_undesirable_characters(line):
     for bad_string, replacement in UNDESIRABLE_STRING_REPLACEMENTS:
         line = line.replace(bad_string, replacement)
 
-    for bad_char, replacement in iteritems(UNDESIRABLE_CHAR_REPLACEMENTS):
+    for bad_char, replacement in UNDESIRABLE_CHAR_REPLACEMENTS.items():
         line = line.replace(bad_char, replacement)
 
     return line
@@ -684,7 +676,7 @@ def replace_undesirable_characters(line):
 
 def _replace_greek_characters(line):
     """Replace greek characters in a string."""
-    for greek_char, replacement in iteritems(_GREEK_REPLACEMENTS):
+    for greek_char, replacement in _GREEK_REPLACEMENTS.items():
         try:
             line = line.replace(greek_char, replacement)
         except UnicodeDecodeError:
